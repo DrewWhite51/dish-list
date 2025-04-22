@@ -1,0 +1,128 @@
+<!-- templates/result.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipe Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+        }
+        .recipe-title {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .source {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .source a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .source a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .back-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .back-btn:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if recipe.error %}
+            <h1>Error Parsing Recipe</h1>
+            <p class="error">{{ recipe.error }}</p>
+        {% else %}
+            <h1>Recipe Details</h1>
+            
+            {% if recipe.title %}
+                <div class="recipe-title">{{ recipe.title }}</div>
+            {% endif %}
+            
+            <div class="source">
+                Source: <a href="{{ recipe.source_url }}" target="_blank">{{ recipe.source_url }}</a>
+            </div>
+            
+            <div class="section">
+                <h2>Ingredients</h2>
+                {% if recipe.ingredients %}
+                    <ul>
+                        {% for ingredient in recipe.ingredients %}
+                            <li>{{ ingredient }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No ingredients found. The recipe format might not be supported.</p>
+                {% endif %}
+            </div>
+            
+            <div class="section">
+                <h2>Directions</h2>
+                {% if recipe.directions %}
+                    <ol>
+                        {% for direction in recipe.directions %}
+                            <li>{{ direction }}</li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p>No directions found. The recipe format might not be supported.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <a href="/" class="back-btn">Parse Another Recipe</a>
+    </div>
+    
+    <div class="footer">
+        <p>Recipe Parser Web App | A simple tool to extract recipe details</p>
+    </div>
+</body>
+</html>
