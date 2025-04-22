@@ -1,10 +1,12 @@
 # recipe_parser.py
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import requests
 from bs4 import BeautifulSoup
 import re
+from recipe_database import RecipeDatabase
 
 app = Flask(__name__)
+db = RecipeDatabase()  # Initialize the database with default path
 
 def parse_recipe(url):
     """
@@ -130,9 +132,12 @@ def parse_recipe(url):
             "source_url": url
         }
 
+# Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Get all saved recipes to display on the homepage
+    recipes = db.get_all_recipes()
+    return render_template('index.html', recipe=None, recipes=recipes)
 
 @app.route('/parse', methods=['POST'])
 def parse():
@@ -143,8 +148,131 @@ def parse():
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
     
+    # Check if this recipe URL already exists in the database
+    existing_recipe_id = db.recipe_exists(url)
+    if existing_recipe_id:
+        # Recipe already exists, redirect to its page
+        return redirect(url_for('view_recipe', recipe_id=existing_recipe_id))
+    
+    # Parse the recipe
     result = parse_recipe(url)
+    
+    # Pass to template for confirmation before saving
     return render_template('result.html', recipe=result)
+
+@app.route('/save', methods=['POST'])
+def save_recipe():
+    # Extract recipe data from form
+    recipe_data = {
+        'title': request.form.get('title'),
+        'source_url': request.form.get('source_url'),
+        'ingredients': request.form.getlist('ingredients'),
+        'directions': request.form.getlist('directions'),
+        'grocery_list': {}  # Initialize empty grocery list, can be populated later
+    }
+    
+    # Check if recipe already exists
+    existing_recipe_id = db.recipe_exists(recipe_data['source_url'])
+    if existing_recipe_id:
+        # Redirect to existing recipe
+        return redirect(url_for('view_recipe', recipe_id=existing_recipe_id))
+    
+    # Save new recipe
+    recipe_id = db.save_recipe(recipe_data)
+    
+    # Redirect to the saved recipe
+    return redirect(url_for('view_recipe', recipe_id=recipe_id))
+
+@app.route('/recipe/<recipe_id>')
+def view_recipe(recipe_id):
+    # Get recipe from database
+    recipe = db.get_recipe_by_id(recipe_id)
+    if not recipe:
+        return "Recipe not found", 404
+    
+    return render_template('recipe.html', recipe=recipe)
+
+@app.route('/recipes')
+def list_recipes():
+    # Get all recipes from database
+    recipes = db.get_all_recipes()
+    return render_template('recipes.html', recipes=recipes)
+
+@app.route('/delete/<recipe_id>', methods=['POST'])
+def delete_recipe(recipe_id):
+    success = db.delete_recipe(recipe_id)
+    if success:
+        # Redirect to recipes list after deletion
+        return redirect(url_for('list_recipes'))
+    else:
+        # If deletion failed, return to the recipe page with an error
+        return redirect(url_for('view_recipe', recipe_id=recipe_id, error="Failed to delete recipe"))
+
+@app.route('/edit/<recipe_id>', methods=['GET', 'POST'])
+def edit_recipe(recipe_id):
+    # Get existing recipe
+    recipe = db.get_recipe_by_id(recipe_id)
+    if not recipe:
+        return "Recipe not found", 404
+    
+    if request.method == 'POST':
+        # Update recipe data
+        recipe_data = {
+            'id': recipe_id,
+            'title': request.form.get('title'),
+            'source_url': request.form.get('source_url'),
+            'ingredients': request.form.getlist('ingredients'),
+            'directions': request.form.getlist('directions'),
+            'grocery_list': recipe.get('grocery_list', {})  # Preserve existing grocery list
+        }
+        
+        # Update recipe in database (you would need to add an update method to RecipeDatabase)
+        # For now, we'll delete and re-save
+        db.delete_recipe(recipe_id)
+        new_recipe_id = db.save_recipe(recipe_data)
+        
+        return redirect(url_for('view_recipe', recipe_id=new_recipe_id))
+    
+    # Show edit form
+    return render_template('edit_recipe.html', recipe=recipe)
+
+@app.route('/generate_grocery_list/<recipe_id>', methods=['POST'])
+def generate_grocery_list(recipe_id):
+    # Get recipe from database
+    recipe = db.get_recipe_by_id(recipe_id)
+    if not recipe:
+        return "Recipe not found", 404
+    
+    # Create a simple list of ingredients without categorization
+    grocery_list = {
+        'Items': recipe['ingredients']  # Just store all ingredients in a single list
+    }
+    
+    # Update the recipe with the grocery list
+    recipe['grocery_list'] = grocery_list
+    
+    # Save updated recipe
+    db.delete_recipe(recipe_id)
+    new_recipe_id = db.save_recipe(recipe)
+    
+    return redirect(url_for('view_recipe', recipe_id=new_recipe_id))
+
+
+@app.route('/search', methods=['GET'])
+def search_recipes():
+    query = request.args.get('q', '')
+    if not query:
+        return redirect(url_for('list_recipes'))
+    
+    # Simple implementation - get all recipes and filter (for a real app, you'd want to optimize this)
+    all_recipes = db.get_all_recipes()
+    results = []
+    
+    for recipe in all_recipes:
+        if query.lower() in recipe['title'].lower():
+            results.append(recipe)
+    
+    return render_template('search_results.html', recipes=results, query=query)
 
 if __name__ == '__main__':
     app.run(debug=True)

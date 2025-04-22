@@ -1,128 +1,98 @@
-<!-- templates/result.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Recipe Results</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h1, h2 {
-            color: #2c3e50;
-        }
-        h1 {
-            text-align: center;
-        }
-        .recipe-title {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        .source {
-            color: #7f8c8d;
-            margin-bottom: 20px;
-        }
-        .source a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        .source a:hover {
-            text-decoration: underline;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        ul, ol {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 8px;
-        }
-        .error {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        .back-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .back-btn:hover {
-            background-color: #2980b9;
-        }
-        .footer {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #7f8c8d;
-            text-align: center;
-        }
-    </style>
+    <title>Recipe Parser Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
+        <h1>Recipe Parser Results</h1>
+        
         {% if recipe.error %}
-            <h1>Error Parsing Recipe</h1>
-            <p class="error">{{ recipe.error }}</p>
+        <div class="error-message">
+            <p>There was an error parsing the recipe: {{ recipe.error }}</p>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Try Another URL</a>
+        </div>
         {% else %}
-            <h1>Recipe Details</h1>
+        
+        <div class="recipe-preview">
+            <h2>{{ recipe.title or "Untitled Recipe" }}</h2>
+            <p class="source">Source: <a href="{{ recipe.source_url }}" target="_blank">{{ recipe.source_url }}</a></p>
             
-            {% if recipe.title %}
-                <div class="recipe-title">{{ recipe.title }}</div>
-            {% endif %}
-            
-            <div class="source">
-                Source: <a href="{{ recipe.source_url }}" target="_blank">{{ recipe.source_url }}</a>
-            </div>
-            
-            <div class="section">
-                <h2>Ingredients</h2>
-                {% if recipe.ingredients %}
-                    <ul>
+            <form action="{{ url_for('save_recipe') }}" method="post" class="save-form">
+                <input type="hidden" name="source_url" value="{{ recipe.source_url }}">
+                
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" value="{{ recipe.title }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <h3>Ingredients:</h3>
+                    <ul id="ingredientsList">
                         {% for ingredient in recipe.ingredients %}
-                            <li>{{ ingredient }}</li>
+                        <li>
+                            <input type="text" name="ingredients" value="{{ ingredient }}">
+                            <button type="button" class="remove-btn">Remove</button>
+                        </li>
                         {% endfor %}
                     </ul>
-                {% else %}
-                    <p>No ingredients found. The recipe format might not be supported.</p>
-                {% endif %}
-            </div>
-            
-            <div class="section">
-                <h2>Directions</h2>
-                {% if recipe.directions %}
-                    <ol>
+                    <button type="button" id="addIngredient" class="btn btn-secondary">Add Ingredient</button>
+                </div>
+                
+                <div class="form-group">
+                    <h3>Directions:</h3>
+                    <ol id="directionsList">
                         {% for direction in recipe.directions %}
-                            <li>{{ direction }}</li>
+                        <li>
+                            <textarea name="directions">{{ direction }}</textarea>
+                            <button type="button" class="remove-btn">Remove</button>
+                        </li>
                         {% endfor %}
                     </ol>
-                {% else %}
-                    <p>No directions found. The recipe format might not be supported.</p>
-                {% endif %}
-            </div>
-        {% endif %}
+                    <button type="button" id="addDirection" class="btn btn-secondary">Add Direction</button>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Recipe</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
         
-        <a href="/" class="back-btn">Parse Another Recipe</a>
-    </div>
-    
-    <div class="footer">
-        <p>Recipe Parser Web App | A simple tool to extract recipe details</p>
+        <script>
+            // JavaScript to handle adding/removing ingredients and directions
+            document.getElementById('addIngredient').addEventListener('click', function() {
+                const list = document.getElementById('ingredientsList');
+                const li = document.createElement('li');
+                li.innerHTML = '<input type="text" name="ingredients" value="">' +
+                               '<button type="button" class="remove-btn">Remove</button>';
+                list.appendChild(li);
+                addRemoveListeners();
+            });
+            
+            document.getElementById('addDirection').addEventListener('click', function() {
+                const list = document.getElementById('directionsList');
+                const li = document.createElement('li');
+                li.innerHTML = '<textarea name="directions"></textarea>' +
+                               '<button type="button" class="remove-btn">Remove</button>';
+                list.appendChild(li);
+                addRemoveListeners();
+            });
+            
+            function addRemoveListeners() {
+                const removeButtons = document.querySelectorAll('.remove-btn');
+                removeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        this.parentElement.remove();
+                    });
+                });
+            }
+            
+            // Initialize remove buttons
+            addRemoveListeners();
+        </script>
+        {% endif %}
     </div>
 </body>
 </html>

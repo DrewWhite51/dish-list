@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Search Results for "{{ query }}"</h1>
+        
+        <div class="search-form">
+            <form action="{{ url_for('search_recipes') }}" method="get">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search recipes...">
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </form>
+        </div>
+        
+        {% if recipes %}
+        <div class="recipe-grid">
+            {% for recipe in recipes %}
+            <div class="recipe-card">
+                <h2>{{ recipe.title or "Untitled Recipe" }}</h2>
+                <p class="date">Added: {{ recipe.date_added }}</p>
+                <div class="recipe-actions">
+                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-primary">View</a>
+                    <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}" class="btn btn-secondary">Edit</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-recipes">
+            <p>No recipes found matching your search. <a href="{{ url_for('index') }}">Try a different search</a>.</p>
+        </div>
+        {% endif %}
+        
+        <div class="navigation">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+            <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary">All Recipes</a>
+        </div>
+    </div>
+</body>
+</html>
