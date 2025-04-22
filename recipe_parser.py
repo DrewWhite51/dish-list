@@ -7,16 +7,33 @@ from recipe_database import RecipeDatabase
 
 app = Flask(__name__)
 db = RecipeDatabase()  # Initialize the database with default path
+
 def parse_recipe(url):
     """
     Parse a recipe URL to extract ingredients and directions
     """
     try:
-        # Make request to the URL
+        # Enhanced headers to look more like a real browser
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'max-age=0',
+            'Referer': 'https://www.google.com/'
         }
-        response = requests.get(url, headers=headers)
+        
+        # Use a session to maintain cookies
+        import time
+        session = requests.Session()
+        
+        # Add a small delay to be more respectful to servers
+        time.sleep(1.5)
+        
+        # Make request to the URL with the session
+        response = session.get(url, headers=headers, timeout=10)
         response.raise_for_status()  # Raise exception for non-200 status codes
         
         # Parse the HTML
@@ -128,6 +145,35 @@ def parse_recipe(url):
             "source_url": url
         }
     
+    except requests.exceptions.HTTPError as e:
+        if hasattr(e, 'response') and e.response.status_code == 403:
+            return {
+                "error": f"Access denied (403 Forbidden). This website may not allow scraping: {url}",
+                "ingredients": [],
+                "directions": [],
+                "source_url": url
+            }
+        else:
+            return {
+                "error": f"HTTP Error: {str(e)}",
+                "ingredients": [],
+                "directions": [],
+                "source_url": url
+            }
+    except requests.exceptions.ConnectionError:
+        return {
+            "error": f"Connection error - could not connect to {url}",
+            "ingredients": [],
+            "directions": [],
+            "source_url": url
+        }
+    except requests.exceptions.Timeout:
+        return {
+            "error": f"Request timed out for {url}",
+            "ingredients": [],
+            "directions": [],
+            "source_url": url
+        }
     except Exception as e:
         return {
             "error": str(e),
@@ -135,8 +181,7 @@ def parse_recipe(url):
             "directions": [],
             "source_url": url
         }
-    
-    
+
 def clean_ingredients(ingredients):
     """
     Clean up ingredient list by removing duplicates and fragments.
