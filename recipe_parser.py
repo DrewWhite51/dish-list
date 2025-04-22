@@ -7,7 +7,6 @@ from recipe_database import RecipeDatabase
 
 app = Flask(__name__)
 db = RecipeDatabase()  # Initialize the database with default path
-
 def parse_recipe(url):
     """
     Parse a recipe URL to extract ingredients and directions
@@ -25,6 +24,7 @@ def parse_recipe(url):
         
         # Extract ingredients - look for common patterns in recipe websites
         ingredients = []
+        recipe_schema = None  # Initialize recipe_schema to None
         
         # Method 1: Look for elements with 'ingredient' in class or id
         ingredient_elements = soup.find_all(class_=lambda c: c and 'ingredient' in c.lower())
@@ -63,6 +63,7 @@ def parse_recipe(url):
         
         # Extract directions using similar methods
         directions = []
+        schema_data = None  # Initialize schema_data to None
         
         # Method 1: Look for elements with 'direction', 'instruction', or 'step' in class or id
         direction_elements = soup.find_all(class_=lambda c: c and any(x in c.lower() for x in ['direction', 'instruction', 'step']))
@@ -75,40 +76,43 @@ def parse_recipe(url):
                 directions.append(direction_text)
         
         # Method 2: Look for schema.org structured data
-        if not directions:
-            if recipe_schema:
-                try:
-                    if not 'schema_data' in locals():
-                        schema_data = json.loads(recipe_schema.string)
-                        if isinstance(schema_data, list):
-                            schema_data = schema_data[0]
-                    
-                    if '@type' in schema_data and schema_data['@type'] == 'Recipe':
-                        if 'recipeInstructions' in schema_data:
-                            instructions = schema_data['recipeInstructions']
-                            if isinstance(instructions, list):
-                                for instruction in instructions:
-                                    if isinstance(instruction, str):
-                                        directions.append(instruction)
-                                    elif isinstance(instruction, dict) and 'text' in instruction:
-                                        directions.append(instruction['text'])
-                    elif '@graph' in schema_data:
-                        for item in schema_data['@graph']:
-                            if '@type' in item and item['@type'] == 'Recipe':
-                                if 'recipeInstructions' in item:
-                                    instructions = item['recipeInstructions']
-                                    if isinstance(instructions, list):
-                                        for instruction in instructions:
-                                            if isinstance(instruction, str):
-                                                directions.append(instruction)
-                                            elif isinstance(instruction, dict) and 'text' in instruction:
-                                                directions.append(instruction['text'])
-                                    break
-                except:
-                    pass  # Continue if parsing fails
+        if not directions and recipe_schema:  # Only enter if recipe_schema exists
+            try:
+                if not schema_data:  # Only parse if schema_data is not already defined
+                    schema_data = json.loads(recipe_schema.string)
+                    if isinstance(schema_data, list):
+                        schema_data = schema_data[0]
+                
+                if '@type' in schema_data and schema_data['@type'] == 'Recipe':
+                    if 'recipeInstructions' in schema_data:
+                        instructions = schema_data['recipeInstructions']
+                        if isinstance(instructions, list):
+                            for instruction in instructions:
+                                if isinstance(instruction, str):
+                                    directions.append(instruction)
+                                elif isinstance(instruction, dict) and 'text' in instruction:
+                                    directions.append(instruction['text'])
+                elif '@graph' in schema_data:
+                    for item in schema_data['@graph']:
+                        if '@type' in item and item['@type'] == 'Recipe':
+                            if 'recipeInstructions' in item:
+                                instructions = item['recipeInstructions']
+                                if isinstance(instructions, list):
+                                    for instruction in instructions:
+                                        if isinstance(instruction, str):
+                                            directions.append(instruction)
+                                        elif isinstance(instruction, dict) and 'text' in instruction:
+                                            directions.append(instruction['text'])
+                                break
+            except:
+                pass  # Continue if parsing fails
         
         # Clean up the extracted data
         ingredients = [re.sub(r'\s+', ' ', i).strip() for i in ingredients if i.strip()]
+        
+        # Clean up ingredients to remove duplicates and fragments
+        ingredients = clean_ingredients(ingredients)
+        
         directions = [re.sub(r'\s+', ' ', d).strip() for d in directions if d.strip()]
         
         # Try to extract recipe title
@@ -131,6 +135,40 @@ def parse_recipe(url):
             "directions": [],
             "source_url": url
         }
+    
+    
+def clean_ingredients(ingredients):
+    """
+    Clean up ingredient list by removing duplicates and fragments.
+    Prioritize longer, more complete ingredient descriptions.
+    """
+    if not ingredients:
+        return []
+        
+    # Sort ingredients by length (descending) to prioritize complete descriptions
+    sorted_ingredients = sorted(ingredients, key=len, reverse=True)
+    
+    # Initialize list for cleaned ingredients
+    cleaned = []
+    
+    for ingredient in sorted_ingredients:
+        # Skip very short ingredients (likely fragments)
+        if len(ingredient) < 5:
+            continue
+            
+        # Check if this ingredient is already a subset of an existing one
+        is_subset = False
+        for existing in cleaned:
+            if ingredient.lower() in existing.lower():
+                is_subset = True
+                break
+                
+        if not is_subset:
+            # Add to cleaned list if it's not a subset of an existing ingredient
+            cleaned.append(ingredient)
+    
+    return cleaned
+
 
 # Routes
 @app.route('/')
