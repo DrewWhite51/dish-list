@@ -2,80 +2,87 @@
 <html>
 <head>
     <title>Recipe Parser Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Recipe Parser Results</h1>
-        
-        {% if recipe.error %}
-        <div class="error-message">
-            <p>There was an error parsing the recipe: {{ recipe.error }}</p>
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">Try Another URL</a>
-        </div>
-        {% else %}
-        
-        <div class="recipe-preview">
-            <h2>{{ recipe.title or "Untitled Recipe" }}</h2>
-            <p class="source">Source: <a href="{{ recipe.source_url }}" target="_blank">{{ recipe.source_url }}</a></p>
-            
-            <form action="{{ url_for('save_recipe') }}" method="post" class="save-form">
+    <div class="min-h-screen bg-background">
+        <div class="container mx-auto max-w-4xl px-4 py-8">
+            <h1 class="text-4xl font-bold text-foreground mb-8">Recipe Parser Results</h1>
+
+            {% if recipe.error %}
+            <div class="card p-6 border-destructive bg-destructive/10">
+                <p class="text-destructive mb-4">There was an error parsing the recipe: {{ recipe.error }}</p>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Try Another URL</a>
+            </div>
+            {% else %}
+
+            <div class="card p-6 mb-6">
+                <h2 class="text-2xl font-semibold text-foreground mb-2">{{ recipe.title or "Untitled Recipe" }}</h2>
+                <p class="text-sm text-muted-foreground mb-4">
+                    Source: <a href="{{ recipe.source_url }}" target="_blank" class="text-primary hover:underline">{{ recipe.source_url }}</a>
+                </p>
+            </div>
+
+            <form action="{{ url_for('save_recipe') }}" method="post" class="space-y-6">
                 <input type="hidden" name="source_url" value="{{ recipe.source_url }}">
-                
-                <div class="form-group">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" name="title" value="{{ recipe.title }}" required>
+
+                <div class="card p-6 space-y-4">
+                    <div class="space-y-2">
+                        <label for="title" class="text-sm font-medium text-foreground">Title:</label>
+                        <input type="text" id="title" name="title" value="{{ recipe.title }}" required class="input">
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <h3>Ingredients:</h3>
-                    <ul id="ingredientsList">
+
+                <div class="card p-6 space-y-4">
+                    <h3 class="text-xl font-semibold text-foreground">Ingredients:</h3>
+                    <ul id="ingredientsList" class="space-y-2">
                         {% for ingredient in recipe.ingredients %}
-                        <li>
-                            <input type="text" name="ingredients" value="{{ ingredient }}">
-                            <button type="button" class="remove-btn">Remove</button>
+                        <li class="flex gap-2">
+                            <input type="text" name="ingredients" value="{{ ingredient }}" class="input flex-1">
+                            <button type="button" class="remove-btn btn btn-destructive">Remove</button>
                         </li>
                         {% endfor %}
                     </ul>
                     <button type="button" id="addIngredient" class="btn btn-secondary">Add Ingredient</button>
                 </div>
-                
-                <div class="form-group">
-                    <h3>Directions:</h3>
-                    <ol id="directionsList">
+
+                <div class="card p-6 space-y-4">
+                    <h3 class="text-xl font-semibold text-foreground">Directions:</h3>
+                    <ol id="directionsList" class="space-y-2">
                         {% for direction in recipe.directions %}
-                        <li>
-                            <textarea name="directions">{{ direction }}</textarea>
-                            <button type="button" class="remove-btn">Remove</button>
+                        <li class="flex gap-2">
+                            <textarea name="directions" class="textarea flex-1">{{ direction }}</textarea>
+                            <button type="button" class="remove-btn btn btn-destructive">Remove</button>
                         </li>
                         {% endfor %}
                     </ol>
                     <button type="button" id="addDirection" class="btn btn-secondary">Add Direction</button>
                 </div>
-                
-                <div class="form-actions">
+
+                <div class="flex gap-2">
                     <button type="submit" class="btn btn-primary">Save Recipe</button>
                     <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
-        </div>
         
         <script>
             // JavaScript to handle adding/removing ingredients and directions
             document.getElementById('addIngredient').addEventListener('click', function() {
                 const list = document.getElementById('ingredientsList');
                 const li = document.createElement('li');
-                li.innerHTML = '<input type="text" name="ingredients" value="">' +
-                               '<button type="button" class="remove-btn">Remove</button>';
+                li.className = 'flex gap-2';
+                li.innerHTML = '<input type="text" name="ingredients" value="" class="input flex-1">' +
+                               '<button type="button" class="remove-btn btn btn-destructive">Remove</button>';
                 list.appendChild(li);
                 addRemoveListeners();
             });
-            
+
             document.getElementById('addDirection').addEventListener('click', function() {
                 const list = document.getElementById('directionsList');
                 const li = document.createElement('li');
-                li.innerHTML = '<textarea name="directions"></textarea>' +
-                               '<button type="button" class="remove-btn">Remove</button>';
+                li.className = 'flex gap-2';
+                li.innerHTML = '<textarea name="directions" class="textarea flex-1"></textarea>' +
+                               '<button type="button" class="remove-btn btn btn-destructive">Remove</button>';
                 list.appendChild(li);
                 addRemoveListeners();
             });

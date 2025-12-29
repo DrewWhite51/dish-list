@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Clean whites and subtle grays for minimalist base */
+  --background: 0 0% 99%;
+  --foreground: 0 0% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 15%;
+
+  /* Bold orange accent for energy and appetite appeal */
+  --primary: 45 100% 50%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Soft neutral for secondary elements */
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 20%;
+  --muted: 264 100% 96%;
+  --muted-foreground: 264 100% 55%;
+
+  /* Warm coral accent for interactive elements */
+  --accent: 35 100% 65%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 27 88% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 264 100% 92%;
+  --input: 264 100% 92%;
+  --ring: 45 100% 50%;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 0 0% 13%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 16%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 16%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 45 100% 55%;
+  --primary-foreground: 0 0% 13%;
+  --secondary: 0 0% 22%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 264 100% 22%;
+  --muted-foreground: 264 100% 65%;
+  --accent: 35 100% 65%;
+  --accent-foreground: 0 0% 13%;
+  --destructive: 27 88% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 264 100% 25%;
+  --input: 264 100% 25%;
+  --ring: 45 100% 55%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+@layer components {
+  /* Button styles */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+    @apply px-4 py-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .btn-destructive {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+  }
+
+  /* Card styles */
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+
+  /* Input styles */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .textarea {
+    @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+}

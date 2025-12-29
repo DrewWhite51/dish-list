@@ -1,35 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>EZ Recipe Parser</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Recipe Parser - Clean recipes, no clutter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>EZ Recipe Parser</h1>
-
-        <form action="{{ url_for('parse') }}" method="post" class="url-form">
-            <div class="form-group">
-                <label for="recipe_url">Enter a recipe URL:</label>
-                <input type="text" id="recipe_url" name="recipe_url" required>
+    <div class="min-h-screen bg-background">
+        <!-- Header -->
+        <div class="border-b border-border">
+            <div class="container mx-auto max-w-5xl px-4 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-semibold text-foreground">Recipe Parser</h1>
+                        <p class="text-xs text-muted-foreground">Clean recipes, no clutter</p>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Parse Recipe</button>
-        </form>
-        
+        </div>
+
+        <!-- Hero Section -->
+        <div class="container mx-auto max-w-3xl px-4 py-16 text-center">
+            <h1 class="text-5xl font-bold text-foreground mb-4">Extract any recipe in seconds</h1>
+            <p class="text-lg text-muted-foreground mb-12">
+                Paste a recipe URL and get clean ingredients and instructions. No ads, no life stories, just cooking.
+            </p>
+
+            <!-- Parse Form -->
+            <div class="card p-8 mb-8">
+                <form action="{{ url_for('parse') }}" method="post" class="space-y-4">
+                    <div class="space-y-2 text-left">
+                        <label for="recipe_url" class="text-sm font-medium text-foreground">Recipe URL</label>
+                        <input type="text" id="recipe_url" name="recipe_url" required
+                               placeholder="https://example.com/recipe" class="input">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full sm:w-auto">Parse Recipe</button>
+                </form>
+
+                <div class="mt-6 p-4 bg-muted rounded-lg text-left">
+                    <p class="text-sm text-muted-foreground">
+                        <span class="font-medium">Tip:</span> Works with most recipe websites including AllRecipes, Food Network, Bon Appétit, and more.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="grid md:grid-cols-3 gap-6 mt-16">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-foreground mb-2">Lightning Fast</h3>
+                    <p class="text-sm text-muted-foreground">Get your recipe parsed in seconds, not minutes</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-foreground mb-2">Shopping Lists</h3>
+                    <p class="text-sm text-muted-foreground">Copy ingredients directly to your shopping list</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-foreground mb-2">No Distractions</h3>
+                    <p class="text-sm text-muted-foreground">Just the recipe, nothing else. Pure and simple.</p>
+                </div>
+            </div>
+        </div>
+
         {% if recipes %}
-        <div class="saved-recipes">
-            <h2>Your Saved Recipes</h2>
-            <ul class="recipe-list">
-                {% for recipe in recipes %}
-                <li>
-                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}">
-                        {{ recipe.title or "Untitled Recipe" }}
+        <!-- Saved Recipes Section -->
+        <div class="border-t border-border bg-muted/30">
+            <div class="container mx-auto max-w-5xl px-4 py-12">
+                <h2 class="text-2xl font-semibold text-foreground mb-6">Your Saved Recipes</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {% for recipe in recipes[:6] %}
+                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="card p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-medium text-foreground mb-1">{{ recipe.title or "Untitled Recipe" }}</h3>
+                        <p class="text-sm text-muted-foreground">{{ recipe.date_added }}</p>
                     </a>
-                    <span class="date">Added: {{ recipe.date_added }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-            <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary">View All Recipes</a>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary">View All Recipes</a>
+            </div>
         </div>
         {% endif %}
     </div>
