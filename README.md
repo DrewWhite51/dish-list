@@ -1,4 +1,4 @@
-# EZ Recipe
+# Pared
 
 Parse food recipes from URLs and create grocery lists.
 

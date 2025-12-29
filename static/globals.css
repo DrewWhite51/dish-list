@@ -1,100 +1,165 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  /* Clean whites and subtle grays for minimalist base */
-  --background: 0 0% 99%;
-  --foreground: 0 0% 15%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 15%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 15%;
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Colors from V0 design - Light mode only */
+  --color-background: oklch(0.985 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0 0);
 
   /* Bold orange accent for energy and appetite appeal */
-  --primary: 45 100% 50%;
-  --primary-foreground: 0 0% 100%;
+  --color-primary: oklch(0.65 0.19 45);
+  --color-primary-foreground: oklch(0.985 0 0);
 
   /* Soft neutral for secondary elements */
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 20%;
-  --muted: 264 100% 96%;
-  --muted-foreground: 264 100% 55%;
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted: oklch(0.97 0 0);
+  --color-muted-foreground: oklch(0.55 0.015 264);
 
   /* Warm coral accent for interactive elements */
-  --accent: 35 100% 65%;
-  --accent-foreground: 0 0% 100%;
+  --color-accent: oklch(0.75 0.14 35);
+  --color-accent-foreground: oklch(0.985 0 0);
 
-  --destructive: 27 88% 55%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 264 100% 92%;
-  --input: 264 100% 92%;
-  --ring: 45 100% 50%;
-  --radius: 0.75rem;
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.922 0 0);
+  --color-input: oklch(0.922 0 0);
+  --color-ring: oklch(0.65 0.19 45);
+
+  --radius-sm: calc(0.75rem - 4px);
+  --radius-md: calc(0.75rem - 2px);
+  --radius-lg: 0.75rem;
+  --radius-xl: calc(0.75rem + 4px);
 }
 
-.dark {
-  --background: 0 0% 13%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 16%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 16%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 45 100% 55%;
-  --primary-foreground: 0 0% 13%;
-  --secondary: 0 0% 22%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 264 100% 22%;
-  --muted-foreground: 264 100% 65%;
-  --accent: 35 100% 65%;
-  --accent-foreground: 0 0% 13%;
-  --destructive: 27 88% 55%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 264 100% 25%;
-  --input: 264 100% 25%;
-  --ring: 45 100% 55%;
-}
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: theme(colors.border);
   }
+
   body {
-    @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: theme(colors.background);
+    color: theme(colors.foreground);
+    font-family: var(--font-sans);
   }
 }
 
 @layer components {
-  /* Button styles */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
-    @apply px-4 py-2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: theme(borderRadius.md);
+    font-size: theme(fontSize.sm);
+    font-weight: theme(fontWeight.medium);
+    transition-property: color, background-color, border-color;
+    transition-duration: 200ms;
+    padding: theme(spacing.2) theme(spacing.4);
+  }
+
+  .btn:focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-color: theme(colors.ring);
+  }
+
+  .btn:disabled {
+    pointer-events: none;
+    opacity: 0.5;
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    background-color: theme(colors.primary);
+    color: theme(colors.primary-foreground);
+  }
+
+  .btn-primary:hover {
+    background-color: color-mix(in oklch, theme(colors.primary) 90%, black);
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    background-color: theme(colors.secondary);
+    color: theme(colors.secondary-foreground);
+  }
+
+  .btn-secondary:hover {
+    background-color: color-mix(in oklch, theme(colors.secondary) 80%, black);
   }
 
   .btn-destructive {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+    background-color: theme(colors.destructive);
+    color: theme(colors.destructive-foreground);
   }
 
-  /* Card styles */
+  .btn-destructive:hover {
+    background-color: color-mix(in oklch, theme(colors.destructive) 90%, black);
+  }
+
   .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+    border-radius: theme(borderRadius.lg);
+    border-width: 1px;
+    background-color: theme(colors.card);
+    color: theme(colors.card-foreground);
+    box-shadow: theme(boxShadow.sm);
   }
 
-  /* Input styles */
   .input {
-    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    display: flex;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: theme(borderRadius.md);
+    border: 1px solid theme(colors.input);
+    background-color: theme(colors.background);
+    padding: theme(spacing.2) theme(spacing.3);
+    font-size: theme(fontSize.sm);
+  }
+
+  .input::placeholder {
+    color: theme(colors.muted-foreground);
+  }
+
+  .input:focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-color: theme(colors.ring);
+    ring-offset: 2px;
+  }
+
+  .input:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .textarea {
-    @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    display: flex;
+    min-height: 80px;
+    width: 100%;
+    border-radius: theme(borderRadius.md);
+    border: 1px solid theme(colors.input);
+    background-color: theme(colors.background);
+    padding: theme(spacing.2) theme(spacing.3);
+    font-size: theme(fontSize.sm);
+  }
+
+  .textarea::placeholder {
+    color: theme(colors.muted-foreground);
+  }
+
+  .textarea:focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-color: theme(colors.ring);
+    ring-offset: 2px;
+  }
+
+  .textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }

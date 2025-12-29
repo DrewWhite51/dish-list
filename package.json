@@ -2,12 +2,13 @@
   "name": "ez-recipe",
   "version": "1.0.0",
   "description": "EZ Recipe Parser",
+  "type": "module",
   "scripts": {
     "build:css": "tailwindcss -i ./static/globals.css -o ./static/output.css --minify",
     "watch:css": "tailwindcss -i ./static/globals.css -o ./static/output.css --watch"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.1",
-    "@tailwindcss/vite": "^4.0.0-alpha.25"
+    "@tailwindcss/cli": "^4.0.0-alpha.25",
+    "tailwindcss": "^4.0.0-alpha.25"
   }
 }
