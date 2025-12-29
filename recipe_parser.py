@@ -3,14 +3,16 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import requests
 from bs4 import BeautifulSoup
 import re
+import os
 from recipe_database import RecipeDatabase
 
 app = Flask(__name__)
 db = RecipeDatabase()  # Initialize the database with default path
 
-def parse_recipe(url):
+def parse_recipe_html(url):
     """
-    Parse a recipe URL to extract ingredients and directions
+    Traditional HTML-based recipe parsing.
+    This is the original parsing method that looks for HTML patterns.
     """
     try:
         # Enhanced headers to look more like a real browser
@@ -182,6 +184,14 @@ def parse_recipe(url):
             "source_url": url
         }
 
+def parse_recipe(url):
+    """
+    Parse a recipe URL to extract ingredients and directions using HTML parsing.
+    """
+    print(f"Using HTML parsing for {url}")
+    return parse_recipe_html(url)
+
+
 def clean_ingredients(ingredients):
     """
     Clean up ingredient list by removing duplicates and fragments.
@@ -346,16 +356,17 @@ def search_recipes():
     query = request.args.get('q', '')
     if not query:
         return redirect(url_for('list_recipes'))
-    
+
     # Simple implementation - get all recipes and filter (for a real app, you'd want to optimize this)
     all_recipes = db.get_all_recipes()
     results = []
-    
+
     for recipe in all_recipes:
         if query.lower() in recipe['title'].lower():
             results.append(recipe)
-    
+
     return render_template('search_results.html', recipes=results, query=query)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
