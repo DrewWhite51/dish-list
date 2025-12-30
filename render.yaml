@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: pared
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && npm install && npm run build:css && rm -rf node_modules
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --timeout 120 --workers 2 application:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10"
+    disk:
+      name: pared-recipes
+      mountPath: /opt/render/project/src/db
+      sizeGB: 1

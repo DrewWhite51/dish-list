@@ -12,3 +12,12 @@ __pycache__/
 dist/
 build/
 node_modules/
+
+# Deployment
+*.pem
+*.key
+.ssh/
+recipes-backup-*.tar.gz
+
+# Generated CSS
+static/output.css
