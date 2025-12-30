@@ -72,16 +72,20 @@ Return ONLY valid JSON with this exact structure:
 {
   "title": "recipe name here",
   "ingredients": ["ingredient 1", "ingredient 2", ...],
-  "directions": ["step 1", "step 2", ...]
+  "directions": ["step 1", "step 2", ...],
+  "prep_time": "15 minutes",
+  "cook_time": "30 minutes"
 }
 
 Rules:
 - Extract the complete recipe title
 - List ALL ingredients as separate items in the array
 - List ALL cooking steps/directions as separate items in the array
+- Extract prep_time and cook_time if found in the recipe. If not explicitly stated, provide reasonable estimates based on the recipe complexity
+- Format times as "X minutes" or "X hours Y minutes" (e.g., "15 minutes", "1 hour 30 minutes")
 - Preserve the order of ingredients and directions
 - If you cannot find a field, use empty string ("") or empty array ([])
-- Do not add any extra fields
+- Do not add any extra fields beyond the ones shown above
 - Do not include any text outside the JSON object"""
                 },
                 {
@@ -100,6 +104,8 @@ Rules:
         title = result.get("title", "").strip()
         ingredients = result.get("ingredients", [])
         directions = result.get("directions", [])
+        prep_time = result.get("prep_time", "").strip()
+        cook_time = result.get("cook_time", "").strip()
 
         # Ensure they're lists
         if not isinstance(ingredients, list):
@@ -115,6 +121,8 @@ Rules:
             "title": title or "Untitled Recipe",
             "ingredients": ingredients,
             "directions": directions,
+            "prep_time": prep_time,
+            "cook_time": cook_time,
             "source_url": url
         }
 
@@ -124,6 +132,8 @@ Rules:
             "title": "",
             "ingredients": [],
             "directions": [],
+            "prep_time": "",
+            "cook_time": "",
             "source_url": url
         }
     except requests.exceptions.Timeout:
@@ -132,6 +142,8 @@ Rules:
             "title": "",
             "ingredients": [],
             "directions": [],
+            "prep_time": "",
+            "cook_time": "",
             "source_url": url
         }
     except json.JSONDecodeError as e:
@@ -140,6 +152,8 @@ Rules:
             "title": "",
             "ingredients": [],
             "directions": [],
+            "prep_time": "",
+            "cook_time": "",
             "source_url": url
         }
     except Exception as e:
@@ -148,5 +162,7 @@ Rules:
             "title": "",
             "ingredients": [],
             "directions": [],
+            "prep_time": "",
+            "cook_time": "",
             "source_url": url
         }

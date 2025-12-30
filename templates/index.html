@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Recipe Parser - Clean recipes, no clutter</title>
+    <title>Dish List - Clean recipes, no clutter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
@@ -16,7 +16,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-lg font-semibold text-foreground">Recipe Parser</h1>
+                        <h1 class="text-lg font-semibold text-foreground">Dish List</h1>
                         <p class="text-xs text-muted-foreground">Clean recipes, no clutter</p>
                     </div>
                 </div>
@@ -32,13 +32,22 @@
 
             <!-- Parse Form -->
             <div class="card p-8 mb-8">
-                <form action="{{ url_for('parse') }}" method="post" class="space-y-4">
+                <form action="{{ url_for('parse') }}" method="post" class="space-y-4" id="parseForm">
                     <div class="space-y-2 text-left">
                         <label for="recipe_url" class="text-sm font-medium text-foreground">Recipe URL</label>
                         <input type="text" id="recipe_url" name="recipe_url" required
                                placeholder="https://example.com/recipe" class="input">
                     </div>
-                    <button type="submit" class="btn btn-primary w-full sm:w-auto">Go</button>
+                    <button type="submit" class="btn btn-primary w-full sm:w-auto" id="submitBtn">
+                        <span id="submitText">Go</span>
+                        <span id="loadingSpinner" class="hidden">
+                            <svg class="animate-spin h-5 w-5 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Parsing recipe...
+                        </span>
+                    </button>
                 </form>
 
                 <div class="mt-6 p-4 bg-muted rounded-lg text-left">
@@ -47,6 +56,29 @@
                     </p>
                 </div>
             </div>
+
+            <script>
+                document.getElementById('parseForm').addEventListener('submit', function(e) {
+                    const submitBtn = document.getElementById('submitBtn');
+                    const submitText = document.getElementById('submitText');
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    const urlInput = document.getElementById('recipe_url');
+
+                    // Validate URL exists
+                    if (!urlInput.value.trim()) {
+                        return; // Let default validation handle it
+                    }
+
+                    // Disable button and show loading state (but NOT the input)
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                    submitText.classList.add('hidden');
+                    loadingSpinner.classList.remove('hidden');
+                    urlInput.readOnly = true; // Make readonly instead of disabled so value is still submitted
+
+                    // Allow form to submit normally (don't prevent default)
+                });
+            </script>
 
             <!-- Feature Cards -->
             <div class="grid md:grid-cols-3 gap-6 mt-16">

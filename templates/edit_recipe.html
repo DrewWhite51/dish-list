@@ -20,6 +20,18 @@
                         <label for="source_url" class="text-sm font-medium text-foreground">Source URL:</label>
                         <input type="text" id="source_url" name="source_url" value="{{ recipe.source_url }}" class="input">
                     </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label for="prep_time" class="text-sm font-medium text-foreground">Prep Time:</label>
+                            <input type="text" id="prep_time" name="prep_time" value="{{ recipe.prep_time or '' }}" placeholder="e.g., 15 minutes" class="input">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="cook_time" class="text-sm font-medium text-foreground">Cook Time:</label>
+                            <input type="text" id="cook_time" name="cook_time" value="{{ recipe.cook_time or '' }}" placeholder="e.g., 30 minutes" class="input">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card p-6 space-y-4">

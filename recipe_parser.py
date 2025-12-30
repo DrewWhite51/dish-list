@@ -76,6 +76,8 @@ def save_recipe():
     # Extract recipe data from form
     title = request.form.get('title')
     source_url = request.form.get('source_url')
+    prep_time = request.form.get('prep_time', '')
+    cook_time = request.form.get('cook_time', '')
     ingredients_list = request.form.getlist('ingredients')
     directions_list = request.form.getlist('directions')
 
@@ -86,7 +88,7 @@ def save_recipe():
         return redirect(url_for('view_recipe', recipe_id=existing_recipe.id))
 
     # Create new recipe
-    recipe = Recipe(title=title, source_url=source_url)
+    recipe = Recipe(title=title, source_url=source_url, prep_time=prep_time, cook_time=cook_time)
     db.session.add(recipe)
     db.session.flush()  # Get the recipe ID before committing
 
@@ -139,6 +141,8 @@ def edit_recipe(recipe_id):
         # Update recipe metadata
         recipe.title = request.form.get('title')
         recipe.source_url = request.form.get('source_url')
+        recipe.prep_time = request.form.get('prep_time', '')
+        recipe.cook_time = request.form.get('cook_time', '')
 
         # Delete existing ingredients and directions
         Ingredient.query.filter_by(recipe_id=recipe_id).delete()

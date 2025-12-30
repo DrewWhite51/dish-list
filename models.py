@@ -11,6 +11,8 @@ class Recipe(db.Model):
     title = db.Column(db.String(500), nullable=False)
     source_url = db.Column(db.String(1000), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    prep_time = db.Column(db.String(100), nullable=True)
+    cook_time = db.Column(db.String(100), nullable=True)
 
     # Relationships
     ingredients = db.relationship('Ingredient', backref='recipe', lazy=True, cascade='all, delete-orphan')
@@ -27,6 +29,8 @@ class Recipe(db.Model):
             'title': self.title,
             'source_url': self.source_url,
             'date_added': self.date_added.strftime('%Y-%m-%d %H:%M:%S') if self.date_added else '',
+            'prep_time': self.prep_time or '',
+            'cook_time': self.cook_time or '',
             'ingredients': [ing.ingredient for ing in self.ingredients],
             'directions': [dir.direction for dir in sorted(self.directions, key=lambda x: x.step_number)],
             'grocery_list': {gl.category: gl.get_items() for gl in self.grocery_lists}
