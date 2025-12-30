@@ -247,6 +247,9 @@
   .mb-12 {
     margin-bottom: calc(var(--spacing) * 12);
   }
+  .block {
+    display: block;
+  }
   .contents {
     display: contents;
   }

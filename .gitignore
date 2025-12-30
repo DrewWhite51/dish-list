@@ -1,5 +1,4 @@
 /venv
-/db
 .env
 __pycache__/
 *.pyc
@@ -21,3 +20,6 @@ recipes-backup-*.tar.gz
 
 # Generated CSS
 static/output.css
+
+# Documentation
+site/

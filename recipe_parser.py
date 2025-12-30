@@ -4,10 +4,33 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import os
-from recipe_database import RecipeDatabase
+from models import db, Recipe, Ingredient, Direction, GroceryList
+from flask_migrate import Migrate
 
 app = Flask(__name__)
-db = RecipeDatabase()  # Initialize the database with default path
+
+# Configure SQLAlchemy
+database_url = os.environ.get('DATABASE_URL')
+if not database_url:
+    raise ValueError("DATABASE_URL environment variable not set")
+
+# Remove pgbouncer parameter if present (not supported by SQLAlchemy)
+database_url = database_url.replace('?pgbouncer=true', '')
+
+# Replace postgresql:// with postgresql+psycopg:// to use psycopg driver
+if database_url.startswith('postgresql://'):
+    database_url = database_url.replace('postgresql://', 'postgresql+psycopg://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
+
+# Initialize extensions
+db.init_app(app)
+migrate = Migrate(app, db)
 
 def parse_recipe_html(url):
     """
@@ -229,126 +252,137 @@ def clean_ingredients(ingredients):
 @app.route('/')
 def index():
     # Get all saved recipes to display on the homepage
-    recipes = db.get_all_recipes()
-    return render_template('index.html', recipe=None, recipes=recipes)
+    recipes = Recipe.query.order_by(Recipe.date_added.desc()).all()
+    recipes_data = [recipe.to_dict_minimal() for recipe in recipes]
+    return render_template('index.html', recipe=None, recipes=recipes_data)
 
 @app.route('/parse', methods=['POST'])
 def parse():
     url = request.form.get('recipe_url')
     if not url:
         return jsonify({"error": "No URL provided"})
-    
+
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
-    
+
     # Check if this recipe URL already exists in the database
-    existing_recipe_id = db.recipe_exists(url)
-    if existing_recipe_id:
+    existing_recipe = Recipe.query.filter_by(source_url=url).first()
+    if existing_recipe:
         # Recipe already exists, redirect to its page
-        return redirect(url_for('view_recipe', recipe_id=existing_recipe_id))
-    
+        return redirect(url_for('view_recipe', recipe_id=existing_recipe.id))
+
     # Parse the recipe
     result = parse_recipe(url)
-    
+
     # Pass to template for confirmation before saving
     return render_template('result.html', recipe=result)
 
 @app.route('/save', methods=['POST'])
 def save_recipe():
     # Extract recipe data from form
-    recipe_data = {
-        'title': request.form.get('title'),
-        'source_url': request.form.get('source_url'),
-        'ingredients': request.form.getlist('ingredients'),
-        'directions': request.form.getlist('directions'),
-        'grocery_list': {}  # Initialize empty grocery list, can be populated later
-    }
-    
-    # Check if recipe already exists
-    existing_recipe_id = db.recipe_exists(recipe_data['source_url'])
-    if existing_recipe_id:
-        # Redirect to existing recipe
-        return redirect(url_for('view_recipe', recipe_id=existing_recipe_id))
-    
-    # Save new recipe
-    recipe_id = db.save_recipe(recipe_data)
-    
-    # Redirect to the saved recipe
-    return redirect(url_for('view_recipe', recipe_id=recipe_id))
+    title = request.form.get('title')
+    source_url = request.form.get('source_url')
+    ingredients_list = request.form.getlist('ingredients')
+    directions_list = request.form.getlist('directions')
 
-@app.route('/recipe/<recipe_id>')
+    # Check if recipe already exists
+    existing_recipe = Recipe.query.filter_by(source_url=source_url).first()
+    if existing_recipe:
+        # Redirect to existing recipe
+        return redirect(url_for('view_recipe', recipe_id=existing_recipe.id))
+
+    # Create new recipe
+    recipe = Recipe(title=title, source_url=source_url)
+    db.session.add(recipe)
+    db.session.flush()  # Get the recipe ID before committing
+
+    # Add ingredients
+    for ingredient_text in ingredients_list:
+        if ingredient_text.strip():
+            ingredient = Ingredient(recipe_id=recipe.id, ingredient=ingredient_text)
+            db.session.add(ingredient)
+
+    # Add directions
+    for step_number, direction_text in enumerate(directions_list, 1):
+        if direction_text.strip():
+            direction = Direction(recipe_id=recipe.id, step_number=step_number, direction=direction_text)
+            db.session.add(direction)
+
+    db.session.commit()
+
+    # Redirect to the saved recipe
+    return redirect(url_for('view_recipe', recipe_id=recipe.id))
+
+@app.route('/recipe/<int:recipe_id>')
 def view_recipe(recipe_id):
     # Get recipe from database
-    recipe = db.get_recipe_by_id(recipe_id)
-    if not recipe:
-        return "Recipe not found", 404
-    
-    return render_template('recipe.html', recipe=recipe)
+    recipe = Recipe.query.get_or_404(recipe_id)
+    return render_template('recipe.html', recipe=recipe.to_dict())
 
 @app.route('/recipes')
 def list_recipes():
     # Get all recipes from database
-    recipes = db.get_all_recipes()
-    return render_template('recipes.html', recipes=recipes)
+    recipes = Recipe.query.order_by(Recipe.date_added.desc()).all()
+    recipes_data = [recipe.to_dict_minimal() for recipe in recipes]
+    return render_template('recipes.html', recipes=recipes_data)
 
-@app.route('/delete/<recipe_id>', methods=['POST'])
+@app.route('/delete/<int:recipe_id>', methods=['POST'])
 def delete_recipe(recipe_id):
-    success = db.delete_recipe(recipe_id)
-    if success:
-        # Redirect to recipes list after deletion
+    recipe = Recipe.query.get(recipe_id)
+    if recipe:
+        db.session.delete(recipe)
+        db.session.commit()
         return redirect(url_for('list_recipes'))
     else:
-        # If deletion failed, return to the recipe page with an error
         return redirect(url_for('view_recipe', recipe_id=recipe_id, error="Failed to delete recipe"))
 
-@app.route('/edit/<recipe_id>', methods=['GET', 'POST'])
+@app.route('/edit/<int:recipe_id>', methods=['GET', 'POST'])
 def edit_recipe(recipe_id):
     # Get existing recipe
-    recipe = db.get_recipe_by_id(recipe_id)
-    if not recipe:
-        return "Recipe not found", 404
-    
-    if request.method == 'POST':
-        # Update recipe data
-        recipe_data = {
-            'id': recipe_id,
-            'title': request.form.get('title'),
-            'source_url': request.form.get('source_url'),
-            'ingredients': request.form.getlist('ingredients'),
-            'directions': request.form.getlist('directions'),
-            'grocery_list': recipe.get('grocery_list', {})  # Preserve existing grocery list
-        }
-        
-        # Update recipe in database (you would need to add an update method to RecipeDatabase)
-        # For now, we'll delete and re-save
-        db.delete_recipe(recipe_id)
-        new_recipe_id = db.save_recipe(recipe_data)
-        
-        return redirect(url_for('view_recipe', recipe_id=new_recipe_id))
-    
-    # Show edit form
-    return render_template('edit_recipe.html', recipe=recipe)
+    recipe = Recipe.query.get_or_404(recipe_id)
 
-@app.route('/generate_grocery_list/<recipe_id>', methods=['POST'])
+    if request.method == 'POST':
+        # Update recipe metadata
+        recipe.title = request.form.get('title')
+        recipe.source_url = request.form.get('source_url')
+
+        # Delete existing ingredients and directions
+        Ingredient.query.filter_by(recipe_id=recipe_id).delete()
+        Direction.query.filter_by(recipe_id=recipe_id).delete()
+
+        # Add updated ingredients
+        for ingredient_text in request.form.getlist('ingredients'):
+            if ingredient_text.strip():
+                ingredient = Ingredient(recipe_id=recipe_id, ingredient=ingredient_text)
+                db.session.add(ingredient)
+
+        # Add updated directions
+        for step_number, direction_text in enumerate(request.form.getlist('directions'), 1):
+            if direction_text.strip():
+                direction = Direction(recipe_id=recipe_id, step_number=step_number, direction=direction_text)
+                db.session.add(direction)
+
+        db.session.commit()
+        return redirect(url_for('view_recipe', recipe_id=recipe_id))
+
+    # Show edit form
+    return render_template('edit_recipe.html', recipe=recipe.to_dict())
+
+@app.route('/generate_grocery_list/<int:recipe_id>', methods=['POST'])
 def generate_grocery_list(recipe_id):
     # Get recipe from database
-    recipe = db.get_recipe_by_id(recipe_id)
-    if not recipe:
-        return "Recipe not found", 404
-    
+    recipe = Recipe.query.get_or_404(recipe_id)
+
+    # Delete existing grocery lists
+    GroceryList.query.filter_by(recipe_id=recipe_id).delete()
+
     # Create a simple list of ingredients without categorization
-    grocery_list = {
-        'Items': recipe['ingredients']  # Just store all ingredients in a single list
-    }
-    
-    # Update the recipe with the grocery list
-    recipe['grocery_list'] = grocery_list
-    
-    # Save updated recipe
-    db.delete_recipe(recipe_id)
-    new_recipe_id = db.save_recipe(recipe)
-    
-    return redirect(url_for('view_recipe', recipe_id=new_recipe_id))
+    ingredients = [ing.ingredient for ing in recipe.ingredients]
+    grocery_list = GroceryList(recipe_id=recipe_id, category='Items', items=ingredients)
+    db.session.add(grocery_list)
+    db.session.commit()
+
+    return redirect(url_for('view_recipe', recipe_id=recipe_id))
 
 
 @app.route('/search', methods=['GET'])
@@ -357,15 +391,11 @@ def search_recipes():
     if not query:
         return redirect(url_for('list_recipes'))
 
-    # Simple implementation - get all recipes and filter (for a real app, you'd want to optimize this)
-    all_recipes = db.get_all_recipes()
-    results = []
+    # Search for recipes by title
+    results = Recipe.query.filter(Recipe.title.ilike(f'%{query}%')).order_by(Recipe.date_added.desc()).all()
+    results_data = [recipe.to_dict_minimal() for recipe in results]
 
-    for recipe in all_recipes:
-        if query.lower() in recipe['title'].lower():
-            results.append(recipe)
-
-    return render_template('search_results.html', recipes=results, query=query)
+    return render_template('search_results.html', recipes=results_data, query=query)
 
 
 if __name__ == '__main__':
