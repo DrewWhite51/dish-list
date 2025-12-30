@@ -40,7 +40,7 @@ Your Pared recipe parser now uses **PostgreSQL exclusively** for truly free depl
 - No cold starts
 - 512MB RAM
 
-### Option B: Render Free + Supabase ($0/month) ⭐ RECOMMENDED
+### Option B: Render Free + Supabase ($0/month)  RECOMMENDED
 - PostgreSQL database (500MB free from Supabase)
 - Recipes persist between deploys
 - 30-60s cold starts after 15 min inactivity

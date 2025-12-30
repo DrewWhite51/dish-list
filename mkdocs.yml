@@ -35,6 +35,8 @@ nav:
   - Development: development.md
   - ORM & Migrations: orm-migration.md
   - API Reference: api-reference.md
+  - About:
+      - Documentation Structure: documentation-structure.md
 
 markdown_extensions:
   - pymdownx.highlight:

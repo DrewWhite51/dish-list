@@ -6,11 +6,11 @@
 
 ## Features
 
-- 🍳 **Parse Recipes** - Extract ingredients and directions from any recipe website
-- 💾 **PostgreSQL Storage** - Persistent storage with SQLAlchemy ORM
-- 🔍 **Search** - Find recipes by title
-- ✨ **Modern UI** - Clean, responsive design with TailwindCSS v4
-- 🆓 **Free Hosting** - Deploy on Render + Supabase for $0/month
+- **Parse Recipes** - Extract ingredients and directions from any recipe website
+- **PostgreSQL Storage** - Persistent storage with SQLAlchemy ORM
+- **Search** - Find recipes by title
+- **Modern UI** - Clean, responsive design with TailwindCSS v4
+- **Free Hosting** - Deploy on Render + Supabase for $0/month
 
 ## Quick Start
 
@@ -33,7 +33,7 @@ flask --app recipe_parser db upgrade
 python application.py
 ```
 
-Visit `http://localhost:5000` 🎉
+Visit `http://localhost:5000`
 
 ## Tech Stack
 
@@ -44,7 +44,7 @@ Visit `http://localhost:5000` 🎉
 
 ## Documentation
 
-📚 **[Full Documentation](docs/)** - Detailed guides and references
+**[Full Documentation](docs/)** - Detailed guides and references
 
 - **[Getting Started](docs/getting-started.md)** - Complete setup guide
 - **[Deployment Guide](docs/deployment.md)** - Deploy to Render + Supabase ($0/month)

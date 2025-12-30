@@ -36,12 +36,12 @@ ez-recipe/
 
 ### Features You Get
 
-✨ **Beautiful Material Design Theme**
+ **Beautiful Material Design Theme**
 - Professional look with Google Material Design
 - Light and dark mode toggle
 - Responsive design (mobile-friendly)
 
-🔍 **Instant Search**
+ **Instant Search**
 - Full-text search across all documentation
 - Keyboard shortcuts
 - Search suggestions
@@ -86,26 +86,26 @@ mkdocs build
 
 ## Documentation Pages
 
-### [index.md](docs/index.md) - Documentation Homepage
+### [index.md](index.md) - Documentation Homepage
 - Project overview
 - Quick links to all guides
 - Technology stack summary
 
-### [getting-started.md](docs/getting-started.md) - Setup Guide
+### [getting-started.md](getting-started.md) - Setup Guide
 - Complete installation instructions
 - Local development setup
 - Environment configuration
 - Troubleshooting common issues
 - Project structure explanation
 
-### [deployment.md](docs/deployment.md) - Deployment Guide
+### [deployment.md](deployment.md) - Deployment Guide
 - Render + Supabase setup ($0/month)
 - Step-by-step deployment instructions
 - Environment variable configuration
 - Custom domain setup
 - Deployment troubleshooting
 
-### [development.md](docs/development.md) - Development Guide
+### [development.md](development.md) - Development Guide
 - Development workflows
 - Making style changes (TailwindCSS)
 - Database development
@@ -113,7 +113,7 @@ mkdocs build
 - Git workflow and commit guidelines
 - Performance considerations
 
-### [orm-migration.md](docs/orm-migration.md) - ORM Guide
+### [orm-migration.md](orm-migration.md) - ORM Guide
 - SQLAlchemy ORM explanation
 - Database migration workflow
 - Model definitions
@@ -121,7 +121,7 @@ mkdocs build
 - Migration commands
 - Bug fixes documented
 
-### [api-reference.md](docs/api-reference.md) - API Documentation
+### [api-reference.md](api-reference.md) - API Documentation
 - Complete route reference
 - Database model documentation
 - SQL schema
@@ -147,7 +147,7 @@ Using **Material for MkDocs** with:
 
 ### Configuration File
 
-[`mkdocs.yml`](mkdocs.yml):
+`mkdocs.yml` in the project root:
 
 ```yaml
 site_name: Pared Documentation
@@ -179,23 +179,23 @@ theme:
 
 ### For Users
 
-- ✅ **Cleaner README** - Quick overview instead of overwhelming wall of text
-- ✅ **Easy to navigate** - Organized by topic with search
-- ✅ **Better visuals** - Professional documentation site
-- ✅ **Mobile-friendly** - Read docs on phone/tablet
+-  **Cleaner README** - Quick overview instead of overwhelming wall of text
+-  **Easy to navigate** - Organized by topic with search
+-  **Better visuals** - Professional documentation site
+-  **Mobile-friendly** - Read docs on phone/tablet
 
 ### For Developers
 
-- ✅ **Easier to maintain** - Each topic in its own file
-- ✅ **Faster editing** - Smaller files, live reload
-- ✅ **Better organization** - Logical structure
-- ✅ **Version controlled** - All docs in git
+-  **Easier to maintain** - Each topic in its own file
+-  **Faster editing** - Smaller files, live reload
+-  **Better organization** - Logical structure
+-  **Version controlled** - All docs in git
 
 ### For Contributors
 
-- ✅ **Clear guidelines** - Development guide with examples
-- ✅ **API reference** - Complete route and model docs
-- ✅ **Easy to find info** - Search functionality
+-  **Clear guidelines** - Development guide with examples
+-  **API reference** - Complete route and model docs
+-  **Easy to find info** - Search functionality
 
 ## Deploying Documentation
 
@@ -286,4 +286,4 @@ mkdocs gh-deploy
 
 ---
 
-**Result**: Professional, searchable documentation with better organization! 🎉
+**Result**: Professional, searchable documentation with better organization! 

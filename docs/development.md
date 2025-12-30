@@ -202,9 +202,9 @@ git push origin feature/add-prep-time
 
 Write clear, descriptive commit messages:
 
-- ✅ `Add prep_time field to Recipe model`
-- ✅ `Fix recipe parsing for AllRecipes.com`
-- ✅ `Update deployment guide with Supabase setup`
+-  `Add prep_time field to Recipe model`
+-  `Fix recipe parsing for AllRecipes.com`
+-  `Update deployment guide with Supabase setup`
 - ❌ `Fix bug`
 - ❌ `Update stuff`
 
@@ -293,7 +293,7 @@ lsof -ti:5000 | xargs kill -9
 ### Database Migration Conflicts
 
 ```bash
-# Reset migrations (⚠️ destroys data)
+# Reset migrations ( destroys data)
 rm -rf migrations/
 flask --app recipe_parser db init
 flask --app recipe_parser db migrate -m "Initial migration"

@@ -1,11 +1,12 @@
 # recipe_parser.py
 from flask import Flask, render_template, request, jsonify, redirect, url_for
-import requests
-from bs4 import BeautifulSoup
-import re
 import os
+from dotenv import load_dotenv
 from models import db, Recipe, Ingredient, Direction, GroceryList
 from flask_migrate import Migrate
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -32,220 +33,13 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 db.init_app(app)
 migrate = Migrate(app, db)
 
-def parse_recipe_html(url):
-    """
-    Traditional HTML-based recipe parsing.
-    This is the original parsing method that looks for HTML patterns.
-    """
-    try:
-        # Enhanced headers to look more like a real browser
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Cache-Control': 'max-age=0',
-            'Referer': 'https://www.google.com/'
-        }
-        
-        # Use a session to maintain cookies
-        import time
-        session = requests.Session()
-        
-        # Add a small delay to be more respectful to servers
-        time.sleep(1.5)
-        
-        # Make request to the URL with the session
-        response = session.get(url, headers=headers, timeout=10)
-        response.raise_for_status()  # Raise exception for non-200 status codes
-        
-        # Parse the HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Extract ingredients - look for common patterns in recipe websites
-        ingredients = []
-        recipe_schema = None  # Initialize recipe_schema to None
-        
-        # Method 1: Look for elements with 'ingredient' in class or id
-        ingredient_elements = soup.find_all(class_=lambda c: c and 'ingredient' in c.lower())
-        if not ingredient_elements:
-            ingredient_elements = soup.find_all(id=lambda i: i and 'ingredient' in i.lower())
-        
-        # Method 2: Look for <li> elements within lists that might contain ingredients
-        if not ingredients:
-            for element in ingredient_elements:
-                ingredient_text = element.get_text().strip()
-                if ingredient_text and len(ingredient_text) < 200:  # Reasonable length for an ingredient
-                    ingredients.append(ingredient_text)
-        
-        # Method 3: Look for schema.org structured data (common in modern recipe sites)
-        if not ingredients:
-            recipe_schema = soup.find('script', {'type': 'application/ld+json'})
-            if recipe_schema:
-                import json
-                try:
-                    schema_data = json.loads(recipe_schema.string)
-                    # Handle both direct and nested recipe formats
-                    if isinstance(schema_data, list):
-                        schema_data = schema_data[0]
-                    
-                    if '@type' in schema_data and schema_data['@type'] == 'Recipe':
-                        if 'recipeIngredient' in schema_data:
-                            ingredients = schema_data['recipeIngredient']
-                    elif '@graph' in schema_data:
-                        for item in schema_data['@graph']:
-                            if '@type' in item and item['@type'] == 'Recipe':
-                                if 'recipeIngredient' in item:
-                                    ingredients = item['recipeIngredient']
-                                    break
-                except:
-                    pass  # Continue if JSON parsing fails
-        
-        # Extract directions using similar methods
-        directions = []
-        schema_data = None  # Initialize schema_data to None
-        
-        # Method 1: Look for elements with 'direction', 'instruction', or 'step' in class or id
-        direction_elements = soup.find_all(class_=lambda c: c and any(x in c.lower() for x in ['direction', 'instruction', 'step']))
-        if not direction_elements:
-            direction_elements = soup.find_all(id=lambda i: i and any(x in i.lower() for x in ['direction', 'instruction', 'step']))
-        
-        for element in direction_elements:
-            direction_text = element.get_text().strip()
-            if direction_text and len(direction_text) < 500:  # Reasonable length for a direction
-                directions.append(direction_text)
-        
-        # Method 2: Look for schema.org structured data
-        if not directions and recipe_schema:  # Only enter if recipe_schema exists
-            try:
-                if not schema_data:  # Only parse if schema_data is not already defined
-                    schema_data = json.loads(recipe_schema.string)
-                    if isinstance(schema_data, list):
-                        schema_data = schema_data[0]
-                
-                if '@type' in schema_data and schema_data['@type'] == 'Recipe':
-                    if 'recipeInstructions' in schema_data:
-                        instructions = schema_data['recipeInstructions']
-                        if isinstance(instructions, list):
-                            for instruction in instructions:
-                                if isinstance(instruction, str):
-                                    directions.append(instruction)
-                                elif isinstance(instruction, dict) and 'text' in instruction:
-                                    directions.append(instruction['text'])
-                elif '@graph' in schema_data:
-                    for item in schema_data['@graph']:
-                        if '@type' in item and item['@type'] == 'Recipe':
-                            if 'recipeInstructions' in item:
-                                instructions = item['recipeInstructions']
-                                if isinstance(instructions, list):
-                                    for instruction in instructions:
-                                        if isinstance(instruction, str):
-                                            directions.append(instruction)
-                                        elif isinstance(instruction, dict) and 'text' in instruction:
-                                            directions.append(instruction['text'])
-                                break
-            except:
-                pass  # Continue if parsing fails
-        
-        # Clean up the extracted data
-        ingredients = [re.sub(r'\s+', ' ', i).strip() for i in ingredients if i.strip()]
-        
-        # Clean up ingredients to remove duplicates and fragments
-        ingredients = clean_ingredients(ingredients)
-        
-        directions = [re.sub(r'\s+', ' ', d).strip() for d in directions if d.strip()]
-        
-        # Try to extract recipe title
-        title = ""
-        title_element = soup.find('h1')
-        if title_element:
-            title = title_element.get_text().strip()
-        
-        return {
-            "title": title,
-            "ingredients": ingredients,
-            "directions": directions,
-            "source_url": url
-        }
-    
-    except requests.exceptions.HTTPError as e:
-        if hasattr(e, 'response') and e.response.status_code == 403:
-            return {
-                "error": f"Access denied (403 Forbidden). This website may not allow scraping: {url}",
-                "ingredients": [],
-                "directions": [],
-                "source_url": url
-            }
-        else:
-            return {
-                "error": f"HTTP Error: {str(e)}",
-                "ingredients": [],
-                "directions": [],
-                "source_url": url
-            }
-    except requests.exceptions.ConnectionError:
-        return {
-            "error": f"Connection error - could not connect to {url}",
-            "ingredients": [],
-            "directions": [],
-            "source_url": url
-        }
-    except requests.exceptions.Timeout:
-        return {
-            "error": f"Request timed out for {url}",
-            "ingredients": [],
-            "directions": [],
-            "source_url": url
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "ingredients": [],
-            "directions": [],
-            "source_url": url
-        }
 
 def parse_recipe(url):
     """
-    Parse a recipe URL to extract ingredients and directions using HTML parsing.
+    Parse a recipe URL using GPT-4o-mini for robust extraction.
     """
-    print(f"Using HTML parsing for {url}")
-    return parse_recipe_html(url)
-
-
-def clean_ingredients(ingredients):
-    """
-    Clean up ingredient list by removing duplicates and fragments.
-    Prioritize longer, more complete ingredient descriptions.
-    """
-    if not ingredients:
-        return []
-        
-    # Sort ingredients by length (descending) to prioritize complete descriptions
-    sorted_ingredients = sorted(ingredients, key=len, reverse=True)
-    
-    # Initialize list for cleaned ingredients
-    cleaned = []
-    
-    for ingredient in sorted_ingredients:
-        # Skip very short ingredients (likely fragments)
-        if len(ingredient) < 5:
-            continue
-            
-        # Check if this ingredient is already a subset of an existing one
-        is_subset = False
-        for existing in cleaned:
-            if ingredient.lower() in existing.lower():
-                is_subset = True
-                break
-                
-        if not is_subset:
-            # Add to cleaned list if it's not a subset of an existing ingredient
-            cleaned.append(ingredient)
-    
-    return cleaned
+    from robust_parser import parse_recipe_robust
+    return parse_recipe_robust(url)
 
 
 # Routes
