@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide will help you set up Pared locally for development.
+This guide will help you set up Dish List locally for development.
 
 ## Prerequisites
 
@@ -88,11 +88,10 @@ Visit `http://localhost:5000` in your browser!
 ## What You Can Do
 
 - **Parse a Recipe**: Enter any recipe URL on the homepage
-- **Save Recipes**: After parsing, save recipes to your database
+- **Save Recipes**: Recipes are automatically saved to your database after parsing
 - **View Collection**: Browse all saved recipes at `/recipes`
 - **Search**: Use the search bar to find recipes by title
-- **Edit Recipes**: Click "Edit" on any recipe to modify it
-- **Generate Grocery Lists**: Create shopping lists from recipes
+- **Generate Shopping Lists**: Create combined shopping lists from multiple recipes
 
 ## Development Workflow
 

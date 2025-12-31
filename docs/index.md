@@ -1,10 +1,10 @@
-# Pared Documentation
+# Dish List Documentation
 
-Welcome to the Pared recipe parser documentation!
+Welcome to the Dish List recipe parser documentation!
 
-## What is Pared?
+## What is Dish List?
 
-Pared is a lightweight web application that parses recipes from any URL and helps you build your personal recipe collection. Save recipes, search your collection, and generate grocery lists with ease.
+Dish List is a lightweight web application that parses recipes from any URL and helps you build your personal recipe collection. Save recipes, search your collection, and generate grocery lists with ease.
 
 ## Quick Links
 

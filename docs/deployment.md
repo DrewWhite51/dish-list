@@ -1,126 +1,117 @@
-# Deployment Summary
+# Deployment Guide
 
-## What Changed
+Deploy Dish List to production using Render.com and Supabase for free hosting.
 
-Your Pared recipe parser now uses **PostgreSQL exclusively** for truly free deployment using Render + Supabase.
+## Prerequisites
 
-### Files Modified
-
-1. **recipe_database.py** (REPLACED)
-   - Removed old CSV-based implementation
-   - Now uses PostgreSQL exclusively via psycopg v3
-   - Requires `DATABASE_URL` environment variable
-   - Connects to Supabase PostgreSQL database
-
-2. **recipe_parser.py**
-   - Simplified to use PostgreSQL only
-   - Removed conditional CSV/PostgreSQL logic
-   - Requires `DATABASE_URL` to be set
-
-3. **requirements.txt**
-   - Added `psycopg[binary]==3.2.3` for PostgreSQL support
-   - Modern psycopg v3 (no compilation needed)
-
-4. **render.yaml**
-   - Updated to use free tier (no disk)
-   - Added DATABASE_URL environment variable placeholder
-
-5. **README.md**
-   - Added comprehensive Supabase + Render setup guide
-   - Clarified Render free tier limitations (ephemeral storage)
-   - Documented deployment options with costs
-
-6. **.gitignore**
-   - Removed `/db` directory (no longer needed)
+- GitHub account
+- Supabase account (free)
+- Render.com account (free)
+- OpenAI API key
 
 ## Deployment Options
 
-### Option A: Render Starter ($7/month)
-- Persistent disk storage for PostgreSQL
-- No cold starts
-- 512MB RAM
+### Recommended: Render Free + Supabase ($0/month)
 
-### Option B: Render Free + Supabase ($0/month)  RECOMMENDED
 - PostgreSQL database (500MB free from Supabase)
 - Recipes persist between deploys
 - 30-60s cold starts after 15 min inactivity
-- Perfect for family/friends use
+- Perfect for personal or family use
 
-### Option C: Oracle Cloud ($0/month)
-- Full VM control
+### Alternative: Render Starter ($7/month)
+
 - No cold starts
-- Complex setup (~2 hours)
-- Requires server administration skills
+- 512MB RAM
+- Better performance for high traffic
 
-## How It Works
+## Step 1: Set Up Supabase Database
 
-### Local Development
+1. Go to [supabase.com](https://supabase.com) and create a free account
+2. Create a new project
+3. Go to **Project Settings** → **Database**
+4. Copy your **Connection String** (Pooler mode recommended)
+5. The database tables will be created automatically by Flask-Migrate on first deployment
+
+## Step 2: Prepare Your Repository
+
+1. Push your code to GitHub
+2. Ensure you have a `.env.example` file for reference
+3. Verify `requirements.txt` includes all dependencies
+
+## Step 3: Deploy to Render
+
+1. Go to [render.com](https://render.com) and sign up
+2. Click **New** → **Web Service**
+3. Connect your GitHub repository
+4. Configure the service:
+   - **Name**: your-app-name
+   - **Environment**: Python 3
+   - **Build Command**: `pip install -r requirements.txt && npm install && npm run build:css`
+   - **Start Command**: `gunicorn application:app`
+5. Add environment variables:
+   - `DATABASE_URL`: Your Supabase connection string
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `SECRET_KEY`: Generate a random secret key
+6. Click **Create Web Service**
+
+## Step 4: Run Database Migrations
+
+After first deployment, you need to run migrations:
+
+1. In Render dashboard, go to your web service
+2. Click **Shell** tab
+3. Run: `flask --app recipe_parser db upgrade`
+4. Verify tables were created in Supabase dashboard
+
+## Step 5: Verify Deployment
+
+1. Visit your Render URL (e.g., `https://your-app.onrender.com`)
+2. Test parsing a recipe
+3. Verify the recipe appears in your Supabase database
+
+## Environment Variables
+
+Required environment variables for production:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string from Supabase | `postgresql://postgres:...@aws-0-us-east-1.pooler.supabase.com:6543/postgres` |
+| `OPENAI_API_KEY` | OpenAI API key for recipe parsing | `sk-...` |
+| `SECRET_KEY` | Flask secret key for sessions | Random string (generate with `python -c "import secrets; print(secrets.token_hex(32))"`) |
+
+## Updating Your Deployment
+
+To deploy updates:
+
 ```bash
-# Option 1: Use .env file (recommended)
-cp .env.example .env
-# Edit .env and add your DATABASE_URL
-python application.py
-
-# Option 2: Set environment variable directly
-export DATABASE_URL="postgresql://user:password@host:port/database"
-python application.py
-
-# Data stored in PostgreSQL database (Supabase)
+git add .
+git commit -m "Your commit message"
+git push origin main
 ```
 
-### Production (Render + Supabase)
-```bash
-# DATABASE_URL set automatically by Render environment variable
-gunicorn application:app
+Render will automatically rebuild and redeploy your app.
 
-# Data stored in Supabase PostgreSQL database
+## Troubleshooting
+
+### Database Connection Error
+
+Verify your `DATABASE_URL` is set correctly in Render environment variables. Make sure you're using the pooler connection string from Supabase.
+
+### Migrations Not Applied
+
+Run migrations manually via Render Shell:
+
+```bash
+flask --app recipe_parser db upgrade
 ```
 
-## Next Steps
+### Cold Starts
 
-1. **Set up Supabase** (follow README instructions)
-   - Create account
-   - Create project and database
-   - Run SQL to create tables
-   - Copy DATABASE_URL
+On the free tier, your app will sleep after 15 minutes of inactivity. The first request after sleeping takes 30-60 seconds. This is expected behavior.
 
-2. **Deploy to Render**
-   - Push changes to GitHub
-   - Create Render web service
-   - Add DATABASE_URL environment variable
-   - Deploy
+## Cost Breakdown
 
-3. **Test**
-   - Parse a recipe
-   - Redeploy (git push)
-   - Verify recipes persist
-
-## Migration from CSV (Optional)
-
-If you already have recipes in CSV format locally, you can migrate them to PostgreSQL:
-
-1. Set up Supabase and get DATABASE_URL
-2. Set DATABASE_URL environment variable locally:
-   ```bash
-   export DATABASE_URL="postgresql://postgres:..."
-   ```
-3. Run a migration script (you'd need to write this)
-4. Verify data in Supabase dashboard
-
-## Cost Comparison
-
-| Option | Monthly Cost | Setup Time | Cold Starts | Storage |
-|--------|--------------|------------|-------------|---------|
-| Render Starter | $7 | 10 min | No | Persistent disk |
-| **Render Free + Supabase** | **$0** | 20 min | Yes (30-60s) | PostgreSQL 500MB |
-| Oracle Cloud | $0 | 2 hours | No | Full disk |
-
-## Support
-
-- Supabase docs: https://supabase.com/docs
-- Render docs: https://render.com/docs
-- PostgreSQL docs: https://www.postgresql.org/docs/
-
----
-
-**Your app now supports both CSV (local) and PostgreSQL (production) with zero code changes required!**
+- **Render Free Tier**: $0/month (with cold starts)
+- **Supabase Free Tier**: $0/month (500MB database)
+- **OpenAI API**: ~$0.00045 per recipe parse
+- **Total**: <$1/month for typical personal use

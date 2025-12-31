@@ -1,46 +1,118 @@
-# Pared
+# Dish List
 
-> A lightweight recipe parser that extracts ingredients and directions from any recipe URL
+A lightweight recipe parser that extracts ingredients and directions from any recipe URL with built-in abuse protection and intelligent parsing.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/YOUR_USERNAME/ez-recipe)
+## Overview
 
-## Features
+Dish List is a Flask-based web application that parses recipe URLs using OpenAI's GPT-4o-mini API and stores them in PostgreSQL. The app includes comprehensive abuse protection (rate limiting, SSRF protection, budget controls) and features for building shopping lists from multiple recipes.
 
-- **Parse Recipes** - Extract ingredients and directions from any recipe website
-- **PostgreSQL Storage** - Persistent storage with SQLAlchemy ORM
-- **Search** - Find recipes by title
-- **Modern UI** - Clean, responsive design with TailwindCSS v4
-- **Free Hosting** - Deploy on Render + Supabase for $0/month
+## Key Features
 
-## Quick Start
+### Recipe Management
+- **Intelligent Parsing** - Uses GPT-4o-mini to extract clean recipe data from any URL
+- **Duplicate Detection** - Automatically detects and redirects to existing recipes
+- **PostgreSQL Storage** - Persistent storage with SQLAlchemy ORM and automated migrations
+- **Full-Text Search** - Find recipes by title across your entire collection
+- **Shopping Lists** - Combine multiple recipes into organized shopping lists with categories
 
-```bash
-# 1. Clone and install dependencies
-git clone https://github.com/YOUR_USERNAME/ez-recipe.git
-cd ez-recipe
-pip install -r requirements.txt
-npm install
+### Security & Protection
+- **Rate Limiting** - 20 requests per hour per IP address
+- **SSRF Protection** - Blocks localhost and private IP addresses
+- **Daily Budget Control** - $1/day API spending cap with tracking
+- **Cost Monitoring** - Real-time API usage and cost tracking dashboard
+- **IP Blocking** - Automatic blocking for abuse prevention
 
-# 2. Build CSS
-npm run build:css
+### User Experience
+- **Mobile-First Design** - Responsive layout with 44px touch targets
+- **Loading States** - Dynamic cooking messages during recipe parsing
+- **Error Handling** - Graceful error pages for rate limits, budget exceeded, and blocked access
+- **Modern UI** - Clean design with TailwindCSS v4 and OKLCH color space
 
-# 3. Set up database
-cp .env.example .env
-# Edit .env and add your Supabase DATABASE_URL
+## How It Works
 
-# 4. Run migrations and start app
-flask --app recipe_parser db upgrade
-python application.py
-```
-
-Visit `http://localhost:5000`
+1. **User Input** - User submits a recipe URL on the homepage
+2. **Security Checks** - System validates against rate limits, SSRF, and existing duplicates
+3. **AI Parsing** - GPT-4o-mini extracts title, ingredients, directions, and cooking times
+4. **Database Storage** - Recipe is saved to PostgreSQL with full relational structure
+5. **Display** - User views the parsed recipe with copy-to-clipboard functionality
 
 ## Tech Stack
 
-- **Backend**: Flask (Python 3.10+)
-- **Database**: PostgreSQL + SQLAlchemy ORM
-- **Frontend**: TailwindCSS v4
-- **Deployment**: Render.com + Supabase
+### Backend
+- **Flask** - Python web framework
+- **SQLAlchemy** - ORM for database operations
+- **Flask-Migrate** - Database migration management (Alembic)
+- **psycopg** - PostgreSQL adapter
+- **Gunicorn** - Production WSGI server
+
+### Frontend
+- **TailwindCSS v4** - Utility-first CSS framework
+- **Jinja2** - Template engine
+- **Vanilla JavaScript** - Progressive enhancement
+
+### External Services
+- **OpenAI GPT-4o-mini** - Recipe parsing ($0.00045 per request)
+- **PostgreSQL** - Database (Supabase free tier: 500MB)
+- **Render.com** - Web hosting (free tier with cold starts)
+
+### Security
+- **Rate Limiting** - Custom IP-based implementation
+- **SSRF Protection** - URL validation against private networks
+- **Budget Tracking** - API cost monitoring and limits
+
+## Architecture
+
+See how the application works end-to-end:
+
+```mermaid
+flowchart TD
+    Start([User visits Homepage]) --> Input[Enter Recipe URL]
+    Input --> Submit[Click 'Go']
+    Submit --> RateLimit{Rate Limit Check<br/>20 requests/hour}
+
+    RateLimit -->|Exceeded| RateLimitPage[Show Rate Limit Page<br/>with countdown timer]
+    RateLimit -->|Within Limit| SSRF{SSRF Protection<br/>Check URL}
+
+    SSRF -->|Blocked| ErrorPage[Show Error:<br/>Invalid URL]
+    SSRF -->|Valid| Duplicate{Recipe Already<br/>in Database?}
+
+    Duplicate -->|Yes| ShowRecipe[Redirect to<br/>Existing Recipe]
+    Duplicate -->|No| Parse[Parse Recipe with<br/>GPT-4o-mini API]
+
+    Parse --> Budget{Daily Budget<br/>Check}
+    Budget -->|Exceeded| BudgetPage[Show Budget<br/>Exceeded Page]
+    Budget -->|Within Budget| ExtractData[Extract:<br/>• Title<br/>• Ingredients<br/>• Directions<br/>• Prep/Cook Time]
+
+    ExtractData --> SaveDB[(Save to<br/>PostgreSQL)]
+    SaveDB --> ShowRecipe
+
+    ShowRecipe --> ViewRecipe[View Recipe Page]
+    ViewRecipe --> UserActions{User Action?}
+
+    UserActions -->|Copy Ingredients| Clipboard[Copy to Clipboard]
+    UserActions -->|Browse All| AllRecipes[All Recipes Page]
+    UserActions -->|Search| SearchRecipes[Search Results]
+    UserActions -->|Create Shopping List| ShoppingFlow
+
+    AllRecipes --> ShoppingFlow[Shopping List Page]
+    ShoppingFlow --> SelectRecipes[Select Multiple Recipes<br/>with Search & Filter]
+    SelectRecipes --> GenerateList[Generate Combined<br/>Shopping List]
+    GenerateList --> ShowList[Shopping List Results<br/>with Checkboxes]
+
+    ShowList --> EndFlow([End])
+    Clipboard --> EndFlow
+    SearchRecipes --> EndFlow
+
+    style Start fill:#f97316,stroke:#ea580c,color:#fff
+    style EndFlow fill:#f97316,stroke:#ea580c,color:#fff
+    style Parse fill:#fbbf24,stroke:#f59e0b
+    style SaveDB fill:#10b981,stroke:#059669
+    style RateLimit fill:#ef4444,stroke:#dc2626
+    style SSRF fill:#ef4444,stroke:#dc2626
+    style Budget fill:#ef4444,stroke:#dc2626
+```
+
+**[Full Architecture Documentation](docs/architecture.md)** - System diagrams, database schema, and security flows
 
 ## Documentation
 
@@ -48,6 +120,7 @@ Visit `http://localhost:5000`
 
 - **[Getting Started](docs/getting-started.md)** - Complete setup guide
 - **[Deployment Guide](docs/deployment.md)** - Deploy to Render + Supabase ($0/month)
+- **[Architecture](docs/architecture.md)** - System flow, tech stack, database schema
 - **[ORM & Migrations](docs/orm-migration.md)** - Database schema management
 - **[Development Guide](docs/development.md)** - Contributing and workflows
 - **[API Reference](docs/api-reference.md)** - Routes and models
@@ -62,29 +135,55 @@ pip install mkdocs mkdocs-material
 mkdocs serve
 ```
 
-## Deployment
+## Database Schema
 
-Deploy for free using Render + Supabase:
+The application uses a relational database with the following models:
 
-1. **[Set up Supabase](docs/deployment.md#supabase-setup)** - Free PostgreSQL database
-2. **[Deploy to Render](docs/deployment.md#render-deployment)** - Free web hosting
-3. **Done!** - Your recipe parser is live at `https://your-app.onrender.com`
+- **Recipe** - Core recipe metadata (title, source URL, timestamps, cooking times)
+- **Ingredient** - Recipe ingredients (linked to recipes via foreign key)
+- **Direction** - Step-by-step cooking instructions (ordered by step number)
+- **GroceryList** - Shopping list items organized by category
+- **RateLimit** - IP-based rate limiting tracking
+- **APIUsage** - Daily API cost and token usage monitoring
+- **BlockedIP** - IP blocking for abuse prevention
 
-See the **[Deployment Guide](docs/deployment.md)** for detailed instructions.
+See [docs/architecture.md](docs/architecture.md) for detailed schema diagrams.
 
 ## Project Structure
 
 ```
 ez-recipe/
-├── application.py          # Entry point (loads .env)
-├── recipe_parser.py        # Flask app and routes
-├── models.py               # SQLAlchemy ORM models
-├── requirements.txt        # Python dependencies
-├── migrations/             # Database migrations
-├── templates/              # HTML templates
-├── static/                 # CSS and assets
-└── docs/                   # Documentation
+├── application.py              # Entry point (loads .env)
+├── recipe_parser.py            # Flask app, routes, parsing logic
+├── models.py                   # SQLAlchemy ORM models (7 models)
+├── requirements.txt            # Python dependencies
+├── package.json                # Node.js dependencies (TailwindCSS)
+├── migrations/                 # Database migrations (Alembic)
+│   └── versions/               # Migration files
+├── templates/                  # Jinja2 HTML templates
+│   ├── index.html             # Homepage with URL input
+│   ├── recipe.html            # Recipe detail view
+│   ├── recipes.html           # Recipe list with search
+│   ├── shopping-list.html     # Multi-recipe shopping list
+│   └── [error pages]          # Rate limit, budget, blocked
+├── static/                     # Static assets
+│   ├── globals.css            # TailwindCSS source
+│   └── output.css             # Compiled CSS (generated)
+└── docs/                       # Documentation
+    ├── architecture.md        # System diagrams and flows
+    ├── getting-started.md     # Setup instructions
+    ├── deployment.md          # Render + Supabase deployment
+    ├── security.md            # Security features
+    └── [additional docs]
 ```
+
+## Cost Breakdown
+
+- **Hosting** - $0/month (Render free tier)
+- **Database** - $0/month (Supabase free tier, 500MB)
+- **API Costs** - ~$0.00045 per recipe parse
+- **Daily Budget Cap** - $1/day (safety limit for ~2,200 requests)
+- **Monthly Cost** - <$7/month at full capacity (480 recipes/day)
 
 ## Contributing
 

@@ -1,6 +1,6 @@
-site_name: Pared Documentation
+site_name: Dish List Documentation
 site_description: A lightweight recipe parser that extracts ingredients and directions from any recipe URL
-site_author: Pared Contributors
+site_author: Dish List Contributors
 site_url: https://github.com/YOUR_USERNAME/ez-recipe
 
 theme:

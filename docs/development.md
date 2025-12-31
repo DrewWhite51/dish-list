@@ -8,7 +8,7 @@ See the [Getting Started](getting-started.md) guide for initial setup instructio
 
 ## Styling with TailwindCSS v4
 
-Pared uses TailwindCSS v4 with a custom design system.
+Dish List uses TailwindCSS v4 with a custom design system.
 
 ### Color Palette
 
@@ -202,11 +202,11 @@ git push origin feature/add-prep-time
 
 Write clear, descriptive commit messages:
 
--  `Add prep_time field to Recipe model`
--  `Fix recipe parsing for AllRecipes.com`
--  `Update deployment guide with Supabase setup`
-- ❌ `Fix bug`
-- ❌ `Update stuff`
+- Good: `Add prep_time field to Recipe model`
+- Good: `Fix recipe parsing for AllRecipes.com`
+- Good: `Update deployment guide with Supabase setup`
+- Bad: `Fix bug`
+- Bad: `Update stuff`
 
 ## Deployment Testing
 
