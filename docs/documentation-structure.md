@@ -21,13 +21,15 @@ ez-recipe/
 ├── mkdocs.yml (MkDocs configuration)
 ├── requirements-docs.txt (documentation dependencies)
 └── docs/
-    ├── README.md (docs directory guide)
     ├── index.md (documentation homepage)
     ├── getting-started.md (setup guide)
+    ├── security.md (rate limiting & abuse protection)
+    ├── security-checklist.md (pre-publish security audit)
     ├── deployment.md (Render + Supabase deployment)
     ├── development.md (contributing guide)
     ├── orm-migration.md (SQLAlchemy ORM guide)
-    └── api-reference.md (routes and models)
+    ├── api-reference.md (routes and models)
+    └── documentation-structure.md (this file)
 ```
 
 ## What is MkDocs?
@@ -120,6 +122,23 @@ mkdocs build
 - Code examples (before/after)
 - Migration commands
 - Bug fixes documented
+
+### [security.md](security.md) - Abuse Protection Guide
+
+- Rate limiting implementation (20 requests/hour)
+- SSRF protection details
+- Daily budget controls
+- Admin usage dashboard
+- Cost savings analysis
+- Configuration options
+
+### [security-checklist.md](security-checklist.md) - Security Audit
+
+- Pre-publish security checklist
+- Credentials verification
+- Files properly ignored
+- Setup instructions for contributors
+- Safe to make public confirmation
 
 ### [api-reference.md](api-reference.md) - API Documentation
 - Complete route reference

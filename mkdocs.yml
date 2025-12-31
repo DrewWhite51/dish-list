@@ -31,7 +31,9 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
-  - Security & Abuse Protection: security.md
+  - Security:
+      - Abuse Protection: security.md
+      - Security Checklist: security-checklist.md
   - Deployment: deployment.md
   - Development: development.md
   - ORM & Migrations: orm-migration.md

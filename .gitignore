@@ -24,3 +24,8 @@ static/output.css
 
 # Documentation
 site/
+# Backup files
+*.backup
+*.bak
+*~
+.DS_Store

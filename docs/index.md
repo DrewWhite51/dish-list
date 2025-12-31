@@ -9,7 +9,9 @@ Pared is a lightweight web application that parses recipes from any URL and help
 ## Quick Links
 
 - **[Getting Started](getting-started.md)** - Installation and setup guide
-- **[Security & Abuse Protection](security.md)** - Rate limiting, SSRF protection, and budget controls
+- **Security**
+  - **[Abuse Protection](security.md)** - Rate limiting, SSRF protection, and budget controls
+  - **[Security Checklist](security-checklist.md)** - Pre-publish security audit
 - **[Database & ORM](orm-migration.md)** - SQLAlchemy ORM and migrations
 - **[Deployment](deployment.md)** - Deploy to Render + Supabase ($0/month)
 - **[Development](development.md)** - Contributing and development workflow
