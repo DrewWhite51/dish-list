@@ -87,7 +87,7 @@ After cloning this repository, contributors should:
 
 ## Environment Variables Required
 
-See [`.env.example`](https://github.com/YOUR_USERNAME/ez-recipe/blob/main/.env.example) for the complete list of required environment variables.
+See [`.env.example`](https://github.com/DrewWhite51/dish-list/blob/main/.env.example) for the complete list of required environment variables.
 
 ## Additional Security Measures
 

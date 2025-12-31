@@ -13,8 +13,8 @@ This guide will help you set up Dish List locally for development.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ez-recipe.git
-cd ez-recipe
+git clone https://github.com/DrewWhite51/dish-list.git
+cd dish-list
 ```
 
 ### 2. Set Up Python Environment
@@ -121,7 +121,7 @@ See the [ORM Migration Guide](orm-migration.md) for more details.
 ## Project Structure
 
 ```
-ez-recipe/
+dish-list/
 ├── application.py              # Entry point (loads .env)
 ├── recipe_parser.py            # Flask app, routes, parsing logic
 ├── models.py                   # SQLAlchemy ORM models

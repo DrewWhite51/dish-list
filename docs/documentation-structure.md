@@ -8,7 +8,7 @@ The project documentation has been reorganized with a cleaner structure and **Mk
 
 ### Before
 ```
-ez-recipe/
+dish-list/
 ├── README.md (500+ lines, everything in one file)
 ├── DEPLOYMENT.md
 └── ORM_MIGRATION.md
@@ -16,7 +16,7 @@ ez-recipe/
 
 ### After
 ```
-ez-recipe/
+dish-list/
 ├── README.md (concise overview)
 ├── mkdocs.yml (MkDocs configuration)
 ├── requirements-docs.txt (documentation dependencies)
@@ -232,7 +232,7 @@ mkdocs gh-deploy
 This:
 1. Builds the documentation
 2. Pushes to `gh-pages` branch
-3. Makes it available at `https://yourusername.github.io/ez-recipe/`
+3. Makes it available at `https://yourusername.github.io/dish-list/`
 
 ### ReadTheDocs (Free)
 

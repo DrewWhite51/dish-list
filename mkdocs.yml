@@ -1,7 +1,7 @@
 site_name: Dish List Documentation
 site_description: A lightweight recipe parser that extracts ingredients and directions from any recipe URL
 site_author: Dish List Contributors
-site_url: https://github.com/YOUR_USERNAME/ez-recipe
+site_url: https://drewwhite51.github.io/dish-list/
 
 theme:
   name: material
@@ -61,4 +61,4 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/YOUR_USERNAME/ez-recipe
+      link: https://github.com/DrewWhite51/dish-list

@@ -116,7 +116,9 @@ flowchart TD
 
 ## Documentation
 
-**[Full Documentation](docs/)** - Detailed guides and references
+**[View Documentation Online](https://drewwhite51.github.io/dish-list/)** - Full documentation site with search
+
+### Quick Links
 
 - **[Getting Started](docs/getting-started.md)** - Complete setup guide
 - **[Deployment Guide](docs/deployment.md)** - Deploy to Render + Supabase ($0/month)
@@ -152,7 +154,7 @@ See [docs/architecture.md](docs/architecture.md) for detailed schema diagrams.
 ## Project Structure
 
 ```
-ez-recipe/
+dish-list/
 ├── application.py              # Entry point (loads .env)
 ├── recipe_parser.py            # Flask app, routes, parsing logic
 ├── models.py                   # SQLAlchemy ORM models (7 models)
