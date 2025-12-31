@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Access Blocked - Dish List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+</head>
+<body>
+    <div class="min-h-screen bg-background flex items-center justify-center px-4">
+        <div class="card p-8 max-w-md text-center">
+            <div class="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+            </div>
+
+            <h1 class="text-2xl font-bold text-foreground mb-2">Access Blocked</h1>
+            <p class="text-muted-foreground mb-6">
+                Your IP address has been temporarily blocked due to unusual activity patterns.
+            </p>
+
+            <p class="text-sm text-muted-foreground mb-6">
+                If you believe this is an error, please contact support.
+            </p>
+
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Go Home</a>
+        </div>
+    </div>
+</body>
+</html>

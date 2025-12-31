@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Dish List - Clean recipes, no clutter</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
@@ -18,37 +17,36 @@
                     </div>
                     <div>
                         <h1 class="text-lg font-semibold text-foreground">Dish List</h1>
-                        <p class="text-xs text-muted-foreground hidden sm:block">Clean recipes, no clutter</p>
+                        <p class="text-xs text-muted-foreground">Clean recipes, no clutter</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Hero Section -->
-        <div class="container mx-auto max-w-3xl px-4 py-8 sm:py-16 text-center">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 sm:mb-4 leading-tight">Extract any recipe in seconds</h1>
-            <p class="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-12 px-2">
+        <div class="container mx-auto max-w-3xl px-4 py-16 text-center">
+            <h1 class="text-5xl font-bold text-foreground mb-4">Extract any recipe in seconds</h1>
+            <p class="text-lg text-muted-foreground mb-12">
                 Paste a recipe URL and get clean ingredients and instructions. No ads, no life stories, just cooking.
             </p>
 
             <!-- Parse Form -->
-            <div class="card p-4 sm:p-8 mb-8">
+            <div class="card p-8 mb-8">
                 <form action="{{ url_for('parse') }}" method="post" class="space-y-4" id="parseForm">
-                    <div class="flex flex-col sm:flex-row gap-4 sm:items-end">
+                    <div class="flex flex-row gap-4 items-end">
                         <div class="flex-1 space-y-2 text-left">
                             <label for="recipe_url" class="text-sm font-medium text-foreground">Recipe URL</label>
                             <input type="text" id="recipe_url" name="recipe_url" required
-                                placeholder="https://example.com/recipe" class="input text-base">
+                                placeholder="https://example.com/recipe" class="input">
                         </div>
-                        <button type="submit" class="btn btn-primary w-full sm:w-auto min-h-[44px]" id="submitBtn">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <span id="submitText">Go</span>
                             <span id="loadingSpinner" class="hidden">
                                 <svg class="animate-spin h-5 w-5 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <span class="hidden sm:inline">Parsing recipe...</span>
-                                <span class="sm:hidden">Parsing...</span>
+                                Parsing recipe...
                             </span>
                         </button>
                     </div>
@@ -85,8 +83,8 @@
             </script>
 
             <!-- Feature Cards -->
-            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 mt-12 sm:mt-16">
-                <div class="text-center p-4">
+            <div class="grid md:grid-cols-3 gap-6 mt-16">
+                <div class="text-center">
                     <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -96,7 +94,7 @@
                     <p class="text-sm text-muted-foreground">Get your recipe parsed in seconds, not minutes</p>
                 </div>
 
-                <div class="text-center p-4">
+                <div class="text-center">
                     <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -106,7 +104,7 @@
                     <p class="text-sm text-muted-foreground">Copy ingredients directly to your shopping list</p>
                 </div>
 
-                <div class="text-center p-4 sm:col-span-2 md:col-span-1">
+                <div class="text-center">
                     <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
@@ -121,17 +119,17 @@
         {% if recipes %}
         <!-- Saved Recipes Section -->
         <div class="border-t border-border bg-muted/30">
-            <div class="container mx-auto max-w-5xl px-4 py-8 sm:py-12">
+            <div class="container mx-auto max-w-5xl px-4 py-12">
                 <h2 class="text-2xl font-semibold text-foreground mb-6">Community Saved Recipes</h2>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     {% for recipe in recipes[:6] %}
-                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="card p-4 hover:shadow-md transition-shadow min-h-[80px] flex flex-col justify-between">
-                        <h3 class="font-medium text-foreground mb-1 line-clamp-2">{{ recipe.title or "Untitled Recipe" }}</h3>
+                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="card p-4 hover:shadow-md transition-shadow">
+                        <h3 class="font-medium text-foreground mb-1">{{ recipe.title or "Untitled Recipe" }}</h3>
                         <p class="text-sm text-muted-foreground">{{ recipe.date_added }}</p>
                     </a>
                     {% endfor %}
                 </div>
-                <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary w-full sm:w-auto">View All Recipes</a>
+                <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary">View All Recipes</a>
             </div>
         </div>
         {% endif %}

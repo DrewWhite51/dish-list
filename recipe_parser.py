@@ -2,8 +2,16 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import os
 from dotenv import load_dotenv
-from models import db, Recipe, Ingredient, Direction, GroceryList
+from models import db, Recipe, Ingredient, Direction, GroceryList, RateLimit, ApiUsage, BlockedIp
 from flask_migrate import Migrate
+from protection import (
+    require_rate_limit,
+    validate_url_for_ssrf,
+    record_api_usage,
+    get_client_ip,
+    check_rate_limit
+)
+from datetime import datetime, timedelta
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,11 +35,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
+    'connect_args': {'prepare_threshold': None}  # Disable prepared statements for pgbouncer
 }
 
 # Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
+
+# Rate limiting configuration
+app.config['RATE_LIMIT_PER_HOUR'] = int(os.getenv('RATE_LIMIT_PER_HOUR', '20'))
+app.config['RATE_LIMIT_ENABLED'] = os.getenv('RATE_LIMIT_ENABLED', 'true').lower() == 'true'
+app.config['DAILY_BUDGET_USD'] = float(os.getenv('DAILY_BUDGET_USD', '5.00'))
+app.config['COST_PER_REQUEST'] = float(os.getenv('COST_PER_REQUEST', '0.0015'))
+app.config['BUDGET_ALERT_THRESHOLD'] = float(os.getenv('BUDGET_ALERT_THRESHOLD', '0.8'))
 
 
 def parse_recipe(url):
@@ -51,6 +67,7 @@ def index():
     return render_template('index.html', recipe=None, recipes=recipes_data)
 
 @app.route('/parse', methods=['POST'])
+@require_rate_limit
 def parse():
     url = request.form.get('recipe_url')
     if not url:
@@ -58,6 +75,19 @@ def parse():
 
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
+
+    # SSRF validation
+    is_valid, error_msg = validate_url_for_ssrf(url)
+    if not is_valid:
+        return render_template('result.html', recipe={
+            'error': error_msg,
+            'title': '',
+            'ingredients': [],
+            'directions': [],
+            'prep_time': '',
+            'cook_time': '',
+            'source_url': url
+        })
 
     # Check if this recipe URL already exists in the database
     existing_recipe = Recipe.query.filter_by(source_url=url).first()
@@ -67,6 +97,10 @@ def parse():
 
     # Parse the recipe
     result = parse_recipe(url)
+
+    # Record API usage
+    if 'error' not in result:
+        record_api_usage()
 
     # Pass to template for confirmation before saving
     return render_template('result.html', recipe=result)
@@ -194,6 +228,72 @@ def search_recipes():
     results_data = [recipe.to_dict_minimal() for recipe in results]
 
     return render_template('search_results.html', recipes=results_data, query=query)
+
+
+@app.route('/admin/usage')
+def admin_usage():
+    """
+    Admin dashboard for API usage monitoring.
+    WARNING: In production, protect this route with authentication!
+    """
+    from datetime import date, timedelta
+
+    today = date.today()
+    today_usage = ApiUsage.query.filter_by(date=today).first()
+
+    # Create default if no usage yet
+    if not today_usage:
+        today_usage = ApiUsage(
+            date=today,
+            request_count=0,
+            estimated_cost=0,
+            tokens_used=0
+        )
+
+    # Get last 7 days of usage
+    week_ago = today - timedelta(days=7)
+    weekly_usage = ApiUsage.query.filter(
+        ApiUsage.date >= week_ago
+    ).order_by(ApiUsage.date.desc()).all()
+
+    # Count active IPs in last hour
+    hour_ago = datetime.utcnow() - timedelta(hours=1)
+    active_ips = db.session.query(RateLimit.ip_address).filter(
+        RateLimit.window_start >= hour_ago
+    ).distinct().count()
+
+    # Count blocked IPs
+    blocked_ips_count = BlockedIp.query.count()
+
+    return render_template('admin_usage.html',
+                         today_usage=today_usage,
+                         daily_budget=app.config['DAILY_BUDGET_USD'],
+                         active_ips=active_ips,
+                         blocked_ips_count=blocked_ips_count,
+                         weekly_usage=weekly_usage)
+
+
+# Error handlers for rate limiting and abuse protection
+@app.errorhandler(429)
+def rate_limit_exceeded(e):
+    """Handle rate limit exceeded"""
+    ip = get_client_ip()
+    allowed, retry_seconds, remaining = check_rate_limit(ip, endpoint='/parse')
+    return render_template('rate_limit.html',
+                         retry_after=retry_seconds,
+                         ip_address=ip), 429
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    """Handle blocked IP"""
+    return render_template('blocked.html'), 403
+
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    """Handle budget exceeded"""
+    return render_template('budget_exceeded.html'), 503
 
 
 if __name__ == '__main__':

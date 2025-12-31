@@ -83,3 +83,49 @@ class GroceryList(db.Model):
     def get_items(self):
         """Get items as a list"""
         return self.items if isinstance(self.items, list) else []
+
+
+class RateLimit(db.Model):
+    """Track rate limit attempts per IP address"""
+    __tablename__ = 'rate_limits'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(45), nullable=False, index=True)  # IPv6 max length
+    endpoint = db.Column(db.String(100), nullable=False)
+    window_start = db.Column(db.DateTime, nullable=False, index=True)
+    request_count = db.Column(db.Integer, default=0)
+
+    __table_args__ = (
+        db.Index('idx_ip_endpoint_window', 'ip_address', 'endpoint', 'window_start'),
+    )
+
+    def __repr__(self):
+        return f'<RateLimit {self.ip_address} {self.endpoint} {self.request_count}/{self.window_start}>'
+
+
+class ApiUsage(db.Model):
+    """Track daily OpenAI API usage and costs"""
+    __tablename__ = 'api_usage'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False, unique=True, index=True)
+    request_count = db.Column(db.Integer, default=0)
+    estimated_cost = db.Column(db.Numeric(10, 4), default=0)
+    tokens_used = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return f'<ApiUsage {self.date} requests={self.request_count} cost=${self.estimated_cost}>'
+
+
+class BlockedIp(db.Model):
+    """Track permanently blocked IPs for abuse patterns"""
+    __tablename__ = 'blocked_ips'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(45), nullable=False, unique=True, index=True)
+    reason = db.Column(db.String(500))
+    blocked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    blocked_until = db.Column(db.DateTime, nullable=True)  # NULL = permanent
+
+    def __repr__(self):
+        return f'<BlockedIp {self.ip_address} reason={self.reason}>'
