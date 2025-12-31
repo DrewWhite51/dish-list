@@ -102,8 +102,36 @@ def parse():
     if 'error' not in result:
         record_api_usage()
 
-    # Pass to template for confirmation before saving
-    return render_template('result.html', recipe=result)
+    # If parsing failed, show error page
+    if 'error' in result:
+        return render_template('result.html', recipe=result)
+
+    # Automatically save the parsed recipe to database
+    recipe = Recipe(
+        title=result.get('title', 'Untitled Recipe'),
+        source_url=url,
+        prep_time=result.get('prep_time', ''),
+        cook_time=result.get('cook_time', '')
+    )
+    db.session.add(recipe)
+    db.session.flush()  # Get the recipe ID before committing
+
+    # Add ingredients
+    for ingredient_text in result.get('ingredients', []):
+        if ingredient_text.strip():
+            ingredient = Ingredient(recipe_id=recipe.id, ingredient=ingredient_text)
+            db.session.add(ingredient)
+
+    # Add directions
+    for step_number, direction_text in enumerate(result.get('directions', []), 1):
+        if direction_text.strip():
+            direction = Direction(recipe_id=recipe.id, step_number=step_number, direction=direction_text)
+            db.session.add(direction)
+
+    db.session.commit()
+
+    # Redirect directly to the recipe detail page
+    return redirect(url_for('view_recipe', recipe_id=recipe.id))
 
 @app.route('/save', methods=['POST'])
 def save_recipe():
@@ -155,67 +183,6 @@ def list_recipes():
     recipes = Recipe.query.order_by(Recipe.date_added.desc()).all()
     recipes_data = [recipe.to_dict_minimal() for recipe in recipes]
     return render_template('recipes.html', recipes=recipes_data)
-
-@app.route('/delete/<int:recipe_id>', methods=['POST'])
-def delete_recipe(recipe_id):
-    recipe = Recipe.query.get(recipe_id)
-    if recipe:
-        db.session.delete(recipe)
-        db.session.commit()
-        return redirect(url_for('list_recipes'))
-    else:
-        return redirect(url_for('view_recipe', recipe_id=recipe_id, error="Failed to delete recipe"))
-
-@app.route('/edit/<int:recipe_id>', methods=['GET', 'POST'])
-def edit_recipe(recipe_id):
-    # Get existing recipe
-    recipe = Recipe.query.get_or_404(recipe_id)
-
-    if request.method == 'POST':
-        # Update recipe metadata
-        recipe.title = request.form.get('title')
-        recipe.source_url = request.form.get('source_url')
-        recipe.prep_time = request.form.get('prep_time', '')
-        recipe.cook_time = request.form.get('cook_time', '')
-
-        # Delete existing ingredients and directions
-        Ingredient.query.filter_by(recipe_id=recipe_id).delete()
-        Direction.query.filter_by(recipe_id=recipe_id).delete()
-
-        # Add updated ingredients
-        for ingredient_text in request.form.getlist('ingredients'):
-            if ingredient_text.strip():
-                ingredient = Ingredient(recipe_id=recipe_id, ingredient=ingredient_text)
-                db.session.add(ingredient)
-
-        # Add updated directions
-        for step_number, direction_text in enumerate(request.form.getlist('directions'), 1):
-            if direction_text.strip():
-                direction = Direction(recipe_id=recipe_id, step_number=step_number, direction=direction_text)
-                db.session.add(direction)
-
-        db.session.commit()
-        return redirect(url_for('view_recipe', recipe_id=recipe_id))
-
-    # Show edit form
-    return render_template('edit_recipe.html', recipe=recipe.to_dict())
-
-@app.route('/generate_grocery_list/<int:recipe_id>', methods=['POST'])
-def generate_grocery_list(recipe_id):
-    # Get recipe from database
-    recipe = Recipe.query.get_or_404(recipe_id)
-
-    # Delete existing grocery lists
-    GroceryList.query.filter_by(recipe_id=recipe_id).delete()
-
-    # Create a simple list of ingredients without categorization
-    ingredients = [ing.ingredient for ing in recipe.ingredients]
-    grocery_list = GroceryList(recipe_id=recipe_id, category='Items', items=ingredients)
-    db.session.add(grocery_list)
-    db.session.commit()
-
-    return redirect(url_for('view_recipe', recipe_id=recipe_id))
-
 
 @app.route('/search', methods=['GET'])
 def search_recipes():

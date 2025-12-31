@@ -2,30 +2,28 @@
 <html>
 <head>
     <title>Search Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
 </head>
 <body>
     <div class="min-h-screen bg-background">
-        <div class="container mx-auto max-w-6xl px-4 py-8">
-            <h1 class="text-4xl font-bold text-foreground mb-6">Search Results for "{{ query }}"</h1>
+        <div class="container mx-auto max-w-6xl px-4 py-4 sm:py-8">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4 sm:mb-6">Search Results for "{{ query }}"</h1>
 
-            <div class="card p-4 mb-8">
-                <form action="{{ url_for('search_recipes') }}" method="get" class="flex gap-2">
-                    <input type="text" name="q" value="{{ query }}" placeholder="Search recipes..." class="input flex-1">
-                    <button type="submit" class="btn btn-secondary">Search</button>
+            <div class="card p-4 mb-6 sm:mb-8">
+                <form action="{{ url_for('search_recipes') }}" method="get" class="flex flex-col sm:flex-row gap-3 sm:gap-2">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search recipes..." class="input flex-1 text-base">
+                    <button type="submit" class="btn btn-secondary w-full sm:w-auto min-h-[44px]">Search</button>
                 </form>
             </div>
 
             {% if recipes %}
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
                 {% for recipe in recipes %}
-                <div class="card p-6">
-                    <h2 class="text-xl font-semibold text-foreground mb-2">{{ recipe.title or "Untitled Recipe" }}</h2>
+                <div class="card p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-semibold text-foreground mb-2 line-clamp-2">{{ recipe.title or "Untitled Recipe" }}</h2>
                     <p class="text-sm text-muted-foreground mb-4">Added: {{ recipe.date_added }}</p>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-primary">View</a>
-                        <a href="{{ url_for('edit_recipe', recipe_id=recipe.id) }}" class="btn btn-secondary">Edit</a>
-                    </div>
+                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-primary w-full min-h-[44px]">View Recipe</a>
                 </div>
                 {% endfor %}
             </div>
@@ -35,9 +33,9 @@
             </div>
             {% endif %}
 
-            <div class="flex gap-2 pt-4 border-t border-border">
-                <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
-                <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary">All Recipes</a>
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary w-full sm:w-auto min-h-[44px]">Home</a>
+                <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary w-full sm:w-auto min-h-[44px]">All Recipes</a>
             </div>
         </div>
     </div>
