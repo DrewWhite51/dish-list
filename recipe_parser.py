@@ -197,6 +197,42 @@ def search_recipes():
     return render_template('search_results.html', recipes=results_data, query=query)
 
 
+@app.route('/shopping-list')
+def shopping_list():
+    """Display all recipes for shopping list selection"""
+    recipes = Recipe.query.order_by(Recipe.date_added.desc()).all()
+    recipes_data = [recipe.to_dict_minimal() for recipe in recipes]
+    return render_template('shopping_list.html', recipes=recipes_data)
+
+
+@app.route('/generate-shopping-list', methods=['POST'])
+def generate_shopping_list():
+    """Generate a combined shopping list from selected recipes"""
+    recipe_ids = request.form.getlist('recipe_ids')
+
+    if not recipe_ids:
+        return redirect(url_for('shopping_list'))
+
+    # Convert string IDs to integers
+    recipe_ids = [int(id) for id in recipe_ids]
+
+    # Get all selected recipes
+    recipes = Recipe.query.filter(Recipe.id.in_(recipe_ids)).all()
+
+    # Combine all ingredients from selected recipes
+    all_ingredients = []
+    for recipe in recipes:
+        for ingredient in recipe.ingredients:
+            all_ingredients.append({
+                'text': ingredient.ingredient,
+                'recipe': recipe.title
+            })
+
+    return render_template('shopping_list_result.html',
+                         ingredients=all_ingredients,
+                         recipes=recipes)
+
+
 @app.route('/admin/usage')
 def admin_usage():
     """

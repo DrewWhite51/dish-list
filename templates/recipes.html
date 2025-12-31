@@ -33,8 +33,16 @@
             </div>
             {% endif %}
 
-            <div class="pt-4 border-t border-border">
+            <div class="pt-4 border-t border-border flex flex-col sm:flex-row gap-3">
                 <a href="{{ url_for('index') }}" class="btn btn-secondary w-full sm:w-auto min-h-[44px]">Home</a>
+                {% if recipes %}
+                <a href="{{ url_for('shopping_list') }}" class="btn btn-primary w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Create Shopping List
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

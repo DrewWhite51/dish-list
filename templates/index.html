@@ -10,15 +10,27 @@
         <!-- Header -->
         <div class="border-b border-border">
             <div class="container mx-auto max-w-5xl px-4 py-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-semibold text-foreground">Dish List</h1>
+                            <p class="text-xs text-muted-foreground hidden sm:block">Clean recipes, no clutter</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="text-lg font-semibold text-foreground">Dish List</h1>
-                        <p class="text-xs text-muted-foreground hidden sm:block">Clean recipes, no clutter</p>
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary text-sm min-h-[40px] px-3">
+                            <span class="hidden sm:inline">All Recipes</span>
+                            <span class="sm:hidden">Recipes</span>
+                        </a>
+                        <a href="{{ url_for('shopping_list') }}" class="btn btn-primary text-sm min-h-[40px] px-3">
+                            <span class="hidden sm:inline">Shopping List</span>
+                            <span class="sm:hidden">List</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -53,12 +65,6 @@
                         </button>
                     </div>
                 </form>
-
-                <div class="mt-6 p-4 bg-muted rounded-lg text-left">
-                    <p class="text-sm text-muted-foreground">
-                        <span class="font-medium">Tip:</span> Works with most recipe websites including AllRecipes, Food Network, Bon Appétit, and more.
-                    </p>
-                </div>
             </div>
 
             <script>
@@ -131,7 +137,20 @@
                     </a>
                     {% endfor %}
                 </div>
-                <a href="{{ url_for('list_recipes') }}" class="btn btn-secondary w-full sm:w-auto">View All Recipes</a>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="{{ url_for('list_recipes') }}" class="btn btn-primary w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        View All Recipes
+                    </a>
+                    <a href="{{ url_for('shopping_list') }}" class="btn btn-primary w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        Create Shopping List
+                    </a>
+                </div>
             </div>
         </div>
         {% endif %}

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Shopping List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+    <style>
+        .recipe-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .recipe-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .recipe-card.selected {
+            border-color: #f97316;
+            box-shadow: 0 0 0 2px #f97316;
+        }
+        .checkbox-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .recipe-card.selected .checkbox-indicator {
+            background: #f97316;
+            border-color: #f97316;
+        }
+        .checkmark {
+            display: none;
+            color: white;
+            font-weight: bold;
+        }
+        .recipe-card.selected .checkmark {
+            display: block;
+        }
+        #generateButton {
+            position: sticky;
+            bottom: 1rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-background pb-20">
+        <div class="container mx-auto max-w-6xl px-4 py-4 sm:py-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">Create Shopping List</h1>
+                    <p class="text-sm sm:text-base text-muted-foreground">Select recipes to combine into a shopping list</p>
+                </div>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary min-h-[44px]">
+                    <span class="hidden sm:inline">Back to Home</span>
+                    <span class="sm:hidden">Home</span>
+                </a>
+            </div>
+
+            {% if recipes %}
+            <!-- Search and Filter Bar -->
+            <div class="card p-4 mb-6">
+                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                    <div class="flex-1">
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Search recipes..."
+                               class="input text-base w-full"
+                               oninput="filterRecipes()">
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectAll()" class="btn btn-secondary min-h-[44px] px-4">
+                            Select All
+                        </button>
+                        <button type="button" onclick="clearAll()" class="btn btn-secondary min-h-[44px] px-4">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+                <div id="filterStatus" class="mt-3 text-sm text-muted-foreground hidden">
+                    Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> recipes
+                </div>
+            </div>
+            {% endif %}
+
+            <form id="shoppingListForm" action="{{ url_for('generate_shopping_list') }}" method="post">
+                {% if recipes %}
+                <div id="recipeGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                    {% for recipe in recipes %}
+                    <div class="recipe-card card p-4 sm:p-6" onclick="toggleRecipe(this, {{ recipe.id }})" data-recipe-title="{{ recipe.title|lower }}">
+                        <input type="checkbox" name="recipe_ids" value="{{ recipe.id }}" class="hidden recipe-checkbox">
+                        <div class="checkbox-indicator">
+                            <span class="checkmark">✓</span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-semibold text-foreground mb-2 line-clamp-2 pr-10">
+                            {{ recipe.title or "Untitled Recipe" }}
+                        </h2>
+                        <p class="text-sm text-muted-foreground">Added: {{ recipe.date_added }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div id="generateButton" class="card p-4 bg-background border-2 border-border">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="font-semibold text-foreground">
+                                <span id="selectedCount">0</span> recipe<span id="pluralS">s</span> selected
+                            </p>
+                            <p class="text-sm text-muted-foreground">Click recipes above to select them</p>
+                        </div>
+                        <button type="submit" id="submitButton" class="btn btn-primary min-h-[44px] w-full sm:w-auto" disabled>
+                            Generate List
+                        </button>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="card p-6 text-center">
+                    <p class="text-muted-foreground">No recipes found. <a href="{{ url_for('index') }}" class="text-primary hover:underline">Parse a recipe now</a>.</p>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let selectedRecipes = new Set();
+        const totalRecipeCount = document.querySelectorAll('.recipe-card').length;
+
+        function toggleRecipe(card, recipeId) {
+            const checkbox = card.querySelector('.recipe-checkbox');
+
+            if (selectedRecipes.has(recipeId)) {
+                selectedRecipes.delete(recipeId);
+                card.classList.remove('selected');
+                checkbox.checked = false;
+            } else {
+                selectedRecipes.add(recipeId);
+                card.classList.add('selected');
+                checkbox.checked = true;
+            }
+
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedRecipes.size;
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('pluralS').textContent = count === 1 ? '' : 's';
+
+            const submitButton = document.getElementById('submitButton');
+            if (count > 0) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function filterRecipes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const recipeCards = document.querySelectorAll('.recipe-card');
+            let visibleCount = 0;
+
+            recipeCards.forEach(card => {
+                const title = card.getAttribute('data-recipe-title');
+                if (title.includes(searchTerm)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update filter status
+            const filterStatus = document.getElementById('filterStatus');
+            const visibleCountSpan = document.getElementById('visibleCount');
+            const totalCountSpan = document.getElementById('totalCount');
+
+            if (searchTerm) {
+                filterStatus.classList.remove('hidden');
+                visibleCountSpan.textContent = visibleCount;
+                totalCountSpan.textContent = totalRecipeCount;
+            } else {
+                filterStatus.classList.add('hidden');
+            }
+        }
+
+        function selectAll() {
+            const recipeCards = document.querySelectorAll('.recipe-card');
+            recipeCards.forEach(card => {
+                // Only select visible cards
+                if (card.style.display !== 'none') {
+                    const checkbox = card.querySelector('.recipe-checkbox');
+                    const recipeId = parseInt(checkbox.value);
+
+                    if (!selectedRecipes.has(recipeId)) {
+                        selectedRecipes.add(recipeId);
+                        card.classList.add('selected');
+                        checkbox.checked = true;
+                    }
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function clearAll() {
+            const recipeCards = document.querySelectorAll('.recipe-card');
+            recipeCards.forEach(card => {
+                const checkbox = card.querySelector('.recipe-checkbox');
+                const recipeId = parseInt(checkbox.value);
+
+                selectedRecipes.delete(recipeId);
+                card.classList.remove('selected');
+                checkbox.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        // Initialize
+        updateSelectedCount();
+        document.getElementById('totalCount').textContent = totalRecipeCount;
+    </script>
+</body>
+</html>

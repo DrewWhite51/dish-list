@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shopping List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='output.css') }}">
+</head>
+<body>
+    <div class="min-h-screen bg-background">
+        <div class="container mx-auto max-w-5xl px-4 py-4 sm:py-8">
+            <div class="flex items-center justify-between mb-6 gap-2">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">Shopping List</h1>
+                    <p class="text-sm sm:text-base text-muted-foreground">
+                        From {{ recipes|length }} recipe{{ 's' if recipes|length != 1 else '' }}
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    <a href="{{ url_for('shopping_list') }}" class="btn btn-secondary min-h-[44px]">
+                        <span class="hidden sm:inline">Back</span>
+                        <span class="sm:hidden">←</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Selected Recipes Summary -->
+            <div class="card p-4 sm:p-6 mb-6">
+                <h2 class="text-lg sm:text-xl font-bold text-foreground mb-3">Selected Recipes</h2>
+                <div class="flex flex-wrap gap-2">
+                    {% for recipe in recipes %}
+                    <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}"
+                       class="inline-flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg text-sm text-foreground hover:bg-primary/10 transition-colors">
+                        <span>{{ recipe.title }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Shopping List -->
+            <div class="card p-4 sm:p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-foreground">Ingredients</h2>
+                    <button onclick="copyIngredients()" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px]">
+                        <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <span>Copy All</span>
+                    </button>
+                </div>
+                <ul class="space-y-3" id="ingredientsList">
+                    {% for ingredient in ingredients %}
+                    <li class="flex items-start gap-3 group">
+                        <input type="checkbox" class="mt-1.5 w-4 h-4 rounded border-border text-primary focus:ring-primary">
+                        <div class="flex-1">
+                            <span class="text-foreground block">{{ ingredient.text }}</span>
+                            <span class="text-xs text-muted-foreground">{{ ingredient.recipe }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="mt-6 pt-4 border-t border-border">
+                    <p class="text-sm text-muted-foreground">
+                        Total: {{ ingredients|length }} ingredient{{ 's' if ingredients|length != 1 else '' }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{{ url_for('shopping_list') }}" class="btn btn-secondary w-full sm:w-auto min-h-[44px]">
+                    Select Different Recipes
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary w-full sm:w-auto min-h-[44px]">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyIngredients() {
+            const ingredients = document.querySelectorAll('#ingredientsList li span.text-foreground');
+            const text = Array.from(ingredients).map(el => el.textContent).join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                // Show a temporary "Copied!" message
+                const button = event.currentTarget;
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><span>Copied!</span>';
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                }, 2000);
+            });
+        }
+
+        // Add strike-through when checkbox is clicked
+        document.querySelectorAll('#ingredientsList input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const span = this.parentElement.querySelector('.text-foreground');
+                if (this.checked) {
+                    span.style.textDecoration = 'line-through';
+                    span.style.opacity = '0.5';
+                } else {
+                    span.style.textDecoration = 'none';
+                    span.style.opacity = '1';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
