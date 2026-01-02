@@ -12,6 +12,7 @@ dist/
 build/
 node_modules/
 playground.py
+.claude
 
 # Deployment
 *.pem
